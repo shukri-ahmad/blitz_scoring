@@ -6,20 +6,31 @@
     <title>Admin Dashboard</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; display: none; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        h1 { color: #2c3e50; }
-        input[type="text"] { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        input[type="number"] { width: 80px; padding: 8px; text-align: center; font-weight: bold; border: 2px solid #3498db; border-radius: 4px; }
-        button { padding: 10px 15px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px;}
-        button.btn-blue { background-color: #3498db; }
-        .logout { float: right; background-color: #e74c3c; margin-top: 10px; }
+        .container { max-width: 650px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; margin-top: 0; }
+        
+        /* Tab Styles */
+        .tab-menu { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; cursor: pointer; background: #f9f9f9; border: none; font-size: 16px; font-weight: bold; color: #777; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .tab-btn:hover { background: #eee; }
+        .tab-btn.active { background: white; color: #2c3e50; border: 2px solid #ddd; border-bottom: 2px solid white; margin-bottom: -2px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Form & Table Styles */
+        input[type="text"] { padding: 10px; width: 70%; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="number"] { width: 60px; padding: 8px; text-align: center; font-weight: bold; border: 2px solid #3498db; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.btn-blue { background-color: #3498db; width: 100%; margin-top: 15px; font-size: 16px;}
+        button.btn-red { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; }
+        .logout { float: right; background-color: #e74c3c; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         td, th { padding: 10px; border: 1px solid #ddd; text-align: center; }
         th { background-color: #2c3e50; color: white; }
-        .divider-row td { background-color: #2c3e50; height: 4px; padding: 0; }
-        .team-name { font-weight: bold; font-size: 1.1em; text-align: left; padding-left: 15px; }
+        .divider-row td { background-color: #2c3e50; height: 3px; padding: 0; }
+        .team-name { font-weight: bold; text-align: left; padding-left: 15px; }
+        .round-header { background-color: #ecf0f1; padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #3498db; }
     </style>
 </head>
 <body id="adminBody">
@@ -27,42 +38,46 @@
 <div class="container">
     <button class="logout" onclick="logout()">Logout</button>
     <h1>⚙️ Admin Dashboard</h1>
-    <a href="index.html" target="_blank">View Live Standings</a>
-    <hr><br>
+    <a href="index.html" target="_blank" style="color: #3498db; font-weight: bold; text-decoration: none;">&rarr; View Live Standings</a>
+    <br><br>
 
-    <div class="section">
-        <h3>1. Add Teams</h3>
-        <input type="text" id="teamName" placeholder="Enter Team Name" style="width: calc(100% - 120px);">
-        <button onclick="addTeam()">Add Team</button>
-        <p id="teamCount">Teams added: 0</p>
+    <!-- Tabs Menu -->
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchTab('teamsTab', this)">1. Team Management</button>
+        <button class="tab-btn" onclick="switchTab('roundsTab', this)">2. Rounds & Scoring</button>
     </div>
 
-    <div class="section">
-        <h3>2. Matches & Scoring (Auto-Saves)</h3>
-        <button class="btn-blue" onclick="generateRoundOne()">Generate Round 1</button>
-        <p style="font-size: 12px; color: gray;">Just type the score and click away. It saves automatically!</p>
-        
+    <!-- TAB 1: Team Management -->
+    <div id="teamsTab" class="tab-content active">
+        <h3>Add a New Team</h3>
+        <input type="text" id="teamName" placeholder="Enter Team Name">
+        <button onclick="addTeam()">Add Team</button>
+
+        <h3 style="margin-top: 30px;">Current Teams (<span id="teamCount">0</span>)</h3>
         <table>
-            <thead>
-                <tr>
-                    <th>Match</th>
-                    <th>Team</th>
-                    <th>Balls Left (Score)</th>
-                </tr>
-            </thead>
-            <tbody id="matches-body">
-                <!-- Matches will generate here -->
-            </tbody>
+            <thead><tr><th>Team Name</th><th>Action</th></tr></thead>
+            <tbody id="teams-list-body"></tbody>
         </table>
     </div>
+
+    <!-- TAB 2: Rounds Management -->
+    <div id="roundsTab" class="tab-content">
+        <p style="font-size: 13px; color: gray; margin-top: 0;">Scores auto-save when you click away from the input box.</p>
+        
+        <div id="matches-container">
+            <!-- Rounds will be injected here -->
+        </div>
+
+        <button id="generateRoundBtn" class="btn-blue" onclick="generateNextRound()">Generate Round 1</button>
+    </div>
+
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
     authDomain: "makerobot-blitz.firebaseapp.com",
@@ -76,41 +91,131 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  let currentMaxRound = 0;
+
+  // Security
   onAuthStateChanged(auth, (user) => {
     if (user) { document.getElementById("adminBody").style.display = "block"; } 
     else { window.location.href = "login.html"; }
   });
-
   window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
 
-  // Track total teams added
+  // Tab Switching Logic
+  window.switchTab = function(tabId, btnElement) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btnElement.classList.add('active');
+  };
+
+  // --- TEAM MANAGEMENT ---
   onSnapshot(collection(db, "teams"), (snapshot) => {
-    document.getElementById("teamCount").innerText = `Teams added: ${snapshot.size}`;
+    document.getElementById("teamCount").innerText = snapshot.size;
+    const tbody = document.getElementById("teams-list-body");
+    tbody.innerHTML = "";
+    snapshot.forEach(docSnap => {
+        const team = docSnap.data();
+        tbody.innerHTML += `
+            <tr>
+                <td style="text-align: left; padding-left: 15px; font-weight: bold;">${team.name}</td>
+                <td><button class="btn-red" onclick="deleteTeam('${docSnap.id}', '${team.name}')">Delete</button></td>
+            </tr>
+        `;
+    });
   });
 
   window.addTeam = async function() {
     const nameInput = document.getElementById("teamName");
-    const name = nameInput.value.trim();
-    if(!name) return;
-    await addDoc(collection(db, "teams"), { name: name, points: 0, balls: 0 });
+    if(!nameInput.value.trim()) return;
+    await addDoc(collection(db, "teams"), { name: nameInput.value.trim(), points: 0, balls: 0 });
     nameInput.value = ""; 
   };
 
-  // Generate Matches Algorithm
-  window.generateRoundOne = async function() {
-    if(!confirm("Generate Round 1? This will randomly pair all current teams.")) return;
+  window.deleteTeam = async function(id, name) {
+    if(confirm(`Are you sure you want to delete ${name}?\nNote: Do not delete teams if matches have already started.`)) {
+        await deleteDoc(doc(db, "teams", id));
+    }
+  };
+
+  // --- ROUNDS & SCORING ---
+  const qMatches = query(collection(db, "matches"), orderBy("round", "asc"));
+  onSnapshot(qMatches, (snapshot) => {
+    const container = document.getElementById("matches-container");
+    container.innerHTML = "";
     
+    let roundsData = {};
+    currentMaxRound = 0;
+
+    snapshot.forEach(docSnap => {
+        const match = docSnap.data();
+        match.id = docSnap.id;
+        if(match.round > currentMaxRound) currentMaxRound = match.round;
+        if(!roundsData[match.round]) roundsData[match.round] = [];
+        roundsData[match.round].push(match);
+    });
+
+    // Update the button text
+    document.getElementById("generateRoundBtn").innerText = `Generate Round ${currentMaxRound + 1} (Swiss Pairings)`;
+
+    // Render tables per round
+    for(let r = 1; r <= currentMaxRound; r++) {
+        if(!roundsData[r]) continue;
+        let html = `<h3 class="round-header">🏆 Round ${r}</h3><table><thead><tr><th>Match</th><th>Team</th><th>Score (Balls Left)</th></tr></thead><tbody>`;
+        
+        roundsData[r].forEach((match, index) => {
+            const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
+            const bBalls = match.teamB_balls === null ? "" : match.teamB_balls;
+            html += `
+                <tr>
+                    <td rowspan="2" style="font-weight:bold;">#${index+1}</td>
+                    <td class="team-name">${match.teamA_name}</td>
+                    <td><input type="number" min="0" max="10" value="${aBalls}" onchange="updateScore('${match.id}', 'A', this.value)"></td>
+                </tr>
+                <tr>
+                    <td class="team-name">${match.teamB_name}</td>
+                    <td><input type="number" min="0" max="10" value="${bBalls}" onchange="updateScore('${match.id}', 'B', this.value)"></td>
+                </tr>
+                <tr class="divider-row"><td colspan="3"></td></tr>
+            `;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML += html;
+    }
+  });
+
+  window.updateScore = async function(matchId, teamSide, value) {
+    const updateData = {};
+    const numValue = value === "" ? null : parseInt(value);
+    if (teamSide === 'A') updateData.teamA_balls = numValue;
+    if (teamSide === 'B') updateData.teamB_balls = numValue;
+    await updateDoc(doc(db, "matches", matchId), updateData);
+    recalculateStandings();
+  };
+
+  // SWISS PAIRING GENERATOR
+  window.generateNextRound = async function() {
+    const targetRound = currentMaxRound + 1;
+    if(!confirm(`Generate matches for Round ${targetRound}?`)) return;
+
+    // Get all teams
     const teamsSnap = await getDocs(collection(db, "teams"));
     let teams = [];
-    teamsSnap.forEach(doc => teams.push({id: doc.id, name: doc.data().name}));
-    
-    // Shuffle teams for random Matchups
-    teams = teams.sort(() => Math.random() - 0.5);
+    teamsSnap.forEach(doc => teams.push({id: doc.id, ...doc.data()}));
 
+    if(teams.length < 2) return alert("Not enough teams to generate matches.");
+
+    // Swiss Logic: If Round 1, shuffle. If Round 2+, sort by points then balls.
+    if(targetRound === 1) {
+        teams = teams.sort(() => Math.random() - 0.5); // Random pairing
+    } else {
+        teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); // Rank pairing
+    }
+
+    // Create Matches
     for(let i = 0; i < teams.length; i += 2) {
         if(i + 1 < teams.length) {
             await addDoc(collection(db, "matches"), {
-                round: 1,
+                round: targetRound,
                 teamA_id: teams[i].id,
                 teamA_name: teams[i].name,
                 teamB_id: teams[i+1].id,
@@ -119,55 +224,11 @@
                 teamB_balls: null
             });
         } else {
-            alert(`${teams[i].name} has a BYE (no opponent) because of odd team numbers.`);
+            alert(`${teams[i].name} has a BYE in Round ${targetRound} (Odd number of teams).`);
         }
     }
   };
 
-  // Listen to matches and build the UI Table
-  onSnapshot(collection(db, "matches"), (snapshot) => {
-    const tbody = document.getElementById("matches-body");
-    tbody.innerHTML = "";
-    let matchNumber = 1;
-
-    snapshot.forEach((docSnap) => {
-        const match = docSnap.data();
-        const id = docSnap.id;
-        const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
-        const bBalls = match.teamB_balls === null ? "" : match.teamB_balls;
-
-        tbody.innerHTML += `
-            <tr>
-                <td rowspan="2" style="font-weight:bold;">#${matchNumber}</td>
-                <td class="team-name">${match.teamA_name}</td>
-                <td><input type="number" min="0" max="10" value="${aBalls}" onchange="updateScore('${id}', 'A', this.value)"></td>
-            </tr>
-            <tr>
-                <td class="team-name">${match.teamB_name}</td>
-                <td><input type="number" min="0" max="10" value="${bBalls}" onchange="updateScore('${id}', 'B', this.value)"></td>
-            </tr>
-            <tr class="divider-row"><td colspan="3"></td></tr>
-        `;
-        matchNumber++;
-    });
-  });
-
-  // Auto-Save Function
-  window.updateScore = async function(matchId, teamSide, value) {
-    const updateData = {};
-    const numValue = value === "" ? null : parseInt(value);
-    
-    if (teamSide === 'A') updateData.teamA_balls = numValue;
-    if (teamSide === 'B') updateData.teamB_balls = numValue;
-    
-    // 1. Save the score to the match
-    await updateDoc(doc(db, "matches", matchId), updateData);
-    
-    // 2. Automatically recalculate the entire leaderboard
-    recalculateStandings();
-  };
-
-  // Master Recalculator: recalculates all points based on all matches
   async function recalculateStandings() {
     const teamsSnap = await getDocs(collection(db, "teams"));
     let teamStats = {};
@@ -176,7 +237,6 @@
     const matchesSnap = await getDocs(collection(db, "matches"));
     matchesSnap.forEach(docSnap => {
         const match = docSnap.data();
-        // Only calculate if BOTH teams have a score entered
         if(match.teamA_balls !== null && match.teamB_balls !== null) {
             let aPts = 0, bPts = 0;
             if(match.teamA_balls < match.teamB_balls) { aPts = 2; bPts = 0; }
@@ -194,7 +254,6 @@
         }
     });
 
-    // Save recalculated totals to database
     for (let teamId in teamStats) {
         await updateDoc(doc(db, "teams", teamId), {
             points: teamStats[teamId].points,

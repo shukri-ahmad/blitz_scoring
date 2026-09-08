@@ -1,18 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Makerobot Blitz Standings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAKEROBOT BLITZ - Live Standings</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        table { width: 80%; margin: 0 auto; border-collapse: collapse; }
-        th, td { border: 1px solid black; padding: 10px; }
-        th { background-color: #f2f2f2; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        .header-links { text-align: right; margin-bottom: 20px; }
+        .header-links a { color: #3498db; text-decoration: none; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .rank-1 { background-color: #fff3cd !important; font-weight: bold; } /* Gold for 1st place */
     </style>
 </head>
 <body>
 
-    <h1>Makerobot Blitz - Live Leaderboard</h1>
-    <a href="login.html">Admin Login</a>
+<div class="container">
+    <div class="header-links">
+        <a href="login.html">Admin Login &rarr;</a>
+    </div>
+    <h1>🤖 MAKEROBOT BLITZ Standings</h1>
 
     <table>
         <thead>
@@ -24,12 +35,62 @@
             </tr>
         </thead>
         <tbody id="leaderboard-body">
-            <!-- JavaScript will insert the teams here automatically -->
+            <tr><td colspan="4">Loading live standings...</td></tr>
         </tbody>
     </table>
+</div>
 
-    <!-- FIREBASE SETUP GOES HERE -->
-    <!-- Paste the <script type="module"> code that Firebase gave you in Step 1 here -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  /* --- PASTE YOUR FIREBASE CONFIG HERE --- */
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  /* --------------------------------------- */
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  onSnapshot(collection(db, "teams"), (snapshot) => {
+    let teams = [];
+    snapshot.forEach((doc) => {
+      teams.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Sort: Highest points first, then lowest balls
+    teams.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return a.balls - b.balls;
+    });
+
+    const tbody = document.getElementById("leaderboard-body");
+    tbody.innerHTML = ""; 
+
+    if (teams.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4'>No teams registered yet.</td></tr>";
+        return;
+    }
+
+    teams.forEach((team, index) => {
+      const isFirst = index === 0 ? "rank-1" : "";
+      tbody.innerHTML += `
+        <tr class="${isFirst}">
+          <td>${index + 1}</td>
+          <td><strong>${team.name}</strong></td>
+          <td>${team.points}</td>
+          <td>${team.balls}</td>
+        </tr>
+      `;
+    });
+  });
+</script>
 
 </body>
 </html>

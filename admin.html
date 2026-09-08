@@ -23,6 +23,7 @@
         button.btn-blue { background-color: #3498db; width: 100%; margin-top: 15px; font-size: 16px;}
         button.btn-red { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; }
         button.btn-manage { background-color: #f39c12; padding: 5px 10px; font-size: 12px; }
+        button.btn-restart { background-color: #9b59b6; padding: 5px 10px; font-size: 12px; }
         .logout { float: right; background-color: #e74c3c; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -160,6 +161,7 @@
                   <td style="font-weight: bold; text-align: left; padding-left: 15px;">${game.name} ${lockedBadge}</td>
                   <td>
                       <button class="btn-manage" onclick="selectGame('${docSnap.id}')">Manage</button>
+                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">Restart</button>
                       <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">Delete</button>
                   </td>
               </tr>
@@ -187,6 +189,35 @@
           }
           await deleteDoc(doc(db, "games", id));
       }
+  };
+
+  // NEW RESTART FEATURE
+  window.restartGame = async function(id, name) {
+      if(!confirm(`⚠️ Are you sure you want to RESTART "${name}"?\n\nAll matches and scores will be permanently deleted! The teams will remain registered so you can run the tournament again.`)) return;
+
+      // 1. Unlock the game
+      await updateDoc(doc(db, "games", id), { isLocked: false });
+
+      // 2. Delete all matches for this game
+      const matchesSnap = await getDocs(collection(db, "games", id, "matches"));
+      const matchPromises = [];
+      matchesSnap.forEach(matchDoc => {
+          matchPromises.push(deleteDoc(doc(db, "games", id, "matches", matchDoc.id)));
+      });
+      await Promise.all(matchPromises);
+
+      // 3. Reset all teams' points and balls to 0
+      const teamsSnap = await getDocs(collection(db, "games", id, "teams"));
+      const teamPromises = [];
+      teamsSnap.forEach(teamDoc => {
+          teamPromises.push(updateDoc(doc(db, "games", id, "teams", teamDoc.id), { points: 0, balls: 0 }));
+      });
+      await Promise.all(teamPromises);
+
+      alert(`Game "${name}" has been restarted!\n\nAll scores are wiped. You can now edit the team roster and start Round 1 again.`);
+      
+      // Auto-select this game to jump right back in
+      selectGame(id);
   };
 
   window.selectGame = function(id) {
@@ -358,7 +389,6 @@
           if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
           if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
           
-          // Record that these two teams have played each other
           playedHistory[m.teamA_id].add(m.teamB_id);
           playedHistory[m.teamB_id].add(m.teamA_id);
       });
@@ -368,7 +398,6 @@
       if(targetRound === 1) {
           teams = teams.sort(() => Math.random() - 0.5); 
       } else {
-          // Sort by Highest Points -> Lowest Balls
           teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); 
       }
 
@@ -377,27 +406,25 @@
       let unpaired = [...teams];
 
       while(unpaired.length > 1) {
-          let teamA = unpaired.shift(); // Take the highest ranked unpaired team
+          let teamA = unpaired.shift(); 
           let matchedIndex = -1;
           
-          // Look down the list for the highest ranked opponent they HAVEN'T played
           for(let i = 0; i < unpaired.length; i++) {
               let potentialOpponent = unpaired[i];
               let historyA = playedHistory[teamA.id] || new Set();
               
               if(!historyA.has(potentialOpponent.id)) {
-                  matchedIndex = i; // Found a valid opponent!
+                  matchedIndex = i; 
                   break;
               }
           }
           
-          // Fallback: If they have played everyone left, force a match
           if(matchedIndex === -1) {
               matchedIndex = 0;
               console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
           }
           
-          let teamB = unpaired.splice(matchedIndex, 1)[0]; // Remove opponent from unpaired list
+          let teamB = unpaired.splice(matchedIndex, 1)[0]; 
           pairings.push({ teamA, teamB });
       }
 

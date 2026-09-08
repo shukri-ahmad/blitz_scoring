@@ -3,99 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Makerobot Blitz</title>
+    <!-- Futuristic Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; display: none; }
-        .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; margin-top: 0; }
+        :root {
+            --red-gear: #e72429;
+            --blue-gear: #1f4179;
+            --blitz-grad: linear-gradient(90deg, #1f4179 0%, #9e58cc 100%);
+            --bg-dark: #090c10;
+            --panel-bg: #111822;
+            --border-glow: #1f4179;
+            --text-main: #c9d1d9;
+        }
+
+        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 20px; display: none; background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%);}
+        .container { max-width: 750px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); }
         
-        .tab-menu { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; cursor: pointer; background: #f9f9f9; border: none; font-size: 15px; font-weight: bold; color: #777; border-radius: 8px 8px 0 0; }
-        .tab-btn:hover { background: #eee; }
-        .tab-btn.active { background: white; color: #2c3e50; border: 2px solid #ddd; border-bottom: 2px solid white; margin-bottom: -2px; }
+        .header-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 15px;}
+        .header-panel img { max-width: 150px; }
+        .header-controls a { color: #9e58cc; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; margin-right: 15px;}
+        
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; color: white; text-transform: uppercase; letter-spacing: 1px;}
+        h1 { margin: 0; font-size: 24px;}
+        
+        .tab-menu { display: flex; border-bottom: 2px solid #30363d; margin-bottom: 25px; }
+        .tab-btn { flex: 1; padding: 12px; cursor: pointer; background: rgba(0,0,0,0.3); border: 1px solid transparent; font-size: 15px; font-weight: bold; color: #8b949e; font-family: 'Orbitron', sans-serif; transition: 0.3s; }
+        .tab-btn:hover { background: rgba(31, 65, 121, 0.3); color: white;}
+        .tab-btn.active { background: var(--panel-bg); color: white; border: 1px solid #30363d; border-bottom: 2px solid var(--panel-bg); margin-bottom: -2px; border-top: 2px solid #9e58cc;}
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        input[type="text"] { padding: 10px; width: 65%; border: 1px solid #ccc; border-radius: 4px; }
-        input[type="number"] { width: 60px; padding: 8px; text-align: center; font-weight: bold; border: 2px solid #3498db; border-radius: 4px; }
-        input[type="number"]:disabled { background-color: #ecf0f1; border-color: #bdc3c7; color: #7f8c8d; cursor: not-allowed; }
-        button { padding: 10px 15px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button.btn-blue { background-color: #3498db; width: 100%; margin-top: 15px; font-size: 16px;}
-        button.btn-red { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; }
-        button.btn-manage { background-color: #f39c12; padding: 5px 10px; font-size: 12px; }
-        button.btn-restart { background-color: #9b59b6; padding: 5px 10px; font-size: 12px; }
-        .logout { float: right; background-color: #e74c3c; }
+        input[type="text"] { padding: 10px; width: 65%; border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: white; font-family: 'Rajdhani', sans-serif; font-size: 16px;}
+        input[type="number"] { width: 60px; padding: 8px; text-align: center; font-weight: bold; border: 2px solid var(--blue-gear); border-radius: 4px; background: #0d1117; color: white; font-family: 'Orbitron', sans-serif; font-size: 16px;}
+        input[type="number"]:disabled { background-color: #090c10; border-color: #30363d; color: #484f58; cursor: not-allowed; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        td, th { padding: 10px; border: 1px solid #ddd; text-align: center; }
-        th { background-color: #2c3e50; color: white; }
-        .divider-row td { background-color: #2c3e50; height: 3px; padding: 0; }
-        .team-name { font-weight: bold; text-align: left; padding-left: 15px; }
-        .round-header { background-color: #ecf0f1; padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #3498db; }
-        .lock-msg { display: none; background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin-bottom: 15px; font-weight: bold; color: #856404; }
-        .active-game-label { background: #d4edda; padding: 10px; border-radius: 4px; color: #155724; font-weight: bold; margin-bottom: 15px; border: 1px solid #c3e6cb; display: none; }
+        button { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s;}
+        button.btn-primary { background: var(--blitz-grad); box-shadow: 0 4px 15px rgba(158, 88, 204, 0.3); }
+        button.btn-primary:hover { filter: brightness(1.2); }
+        button.btn-blue { background-color: var(--blue-gear); width: 100%; margin-top: 15px; font-size: 16px; border: 1px solid #30363d;}
+        button.btn-blue:hover { background-color: #2b57a0; }
+        button.btn-red { background-color: var(--red-gear); padding: 5px 10px; font-size: 12px; }
+        button.btn-manage { background-color: #f39c12; padding: 5px 10px; font-size: 12px; color: black; }
+        button.btn-restart { background-color: #9e58cc; padding: 5px 10px; font-size: 12px; }
+        .logout { background-color: transparent; border: 1px solid var(--red-gear); color: var(--red-gear); font-size: 12px; padding: 5px 10px;}
+        .logout:hover { background-color: var(--red-gear); color: white;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 18px;}
+        td, th { padding: 12px; border: 1px solid #30363d; text-align: center; }
+        th { background: #0d1117; color: #8b949e; font-family: 'Orbitron', sans-serif; font-size: 14px;}
+        .divider-row td { background-color: var(--blue-gear); height: 2px; padding: 0; opacity: 0.5; border: none;}
+        .team-name { font-weight: bold; text-align: left; padding-left: 15px; color: white;}
+        .round-header { background: var(--blue-gear); padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid var(--red-gear); color: white;}
+        
+        .lock-msg { display: none; background: rgba(231, 36, 41, 0.1); padding: 15px; border-left: 4px solid var(--red-gear); margin-bottom: 15px; font-weight: bold; color: #ff7b72; font-family: 'Orbitron', sans-serif;}
+        .active-game-label { background: rgba(31, 65, 121, 0.2); padding: 12px; border-radius: 4px; color: #79c0ff; font-weight: bold; margin-bottom: 20px; border: 1px solid var(--blue-gear); display: none; font-family: 'Orbitron', sans-serif;}
     </style>
 </head>
 <body id="adminBody">
 
 <div class="container">
-    <button class="logout" onclick="logout()">Logout</button>
-    <h1>⚙️ Admin Dashboard</h1>
-    <a href="index.html" target="_blank" style="color: #3498db; font-weight: bold; text-decoration: none;">&rarr; View Live Standings</a>
-    <br><br>
-
+    <div class="header-panel">
+        <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Logo">
+        <div class="header-controls">
+            <a href="index.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
+            <button class="logout" onclick="logout()">LOGOUT</button>
+        </div>
+    </div>
+    
     <div class="tab-menu">
-        <button id="tabBtn0" class="tab-btn active" onclick="switchTab('gamesTab', this)">1. Games</button>
-        <button id="tabBtn1" class="tab-btn" onclick="switchTab('teamsTab', this)">2. Teams</button>
-        <button id="tabBtn2" class="tab-btn" onclick="switchTab('roundsTab', this)">3. Rounds & Score</button>
+        <button id="tabBtn0" class="tab-btn active" onclick="switchTab('gamesTab', this)">SYSTEM: GAMES</button>
+        <button id="tabBtn1" class="tab-btn" onclick="switchTab('teamsTab', this)">ROSTER: TEAMS</button>
+        <button id="tabBtn2" class="tab-btn" onclick="switchTab('roundsTab', this)">DATA: SCORES</button>
     </div>
 
-    <!-- Active Game Display -->
-    <div id="activeGameDisplay" class="active-game-label">Current Game: None Selected</div>
+    <div id="activeGameDisplay" class="active-game-label">TARGET GAME: NULL</div>
 
     <!-- TAB 0: Games Management -->
     <div id="gamesTab" class="tab-content active">
-        <h3>Create a New Game/Category</h3>
-        <input type="text" id="gameName" placeholder="e.g., Junior Category 2026">
-        <button onclick="createGame()">Create Game</button>
+        <h3>INITIALIZE NEW GAME</h3>
+        <input type="text" id="gameName" placeholder="e.g., JUNIOR LEAGUE 2026">
+        <button class="btn-primary" onclick="createGame()">CREATE</button>
 
-        <h3 style="margin-top: 30px;">All Games</h3>
+        <h3 style="margin-top: 40px;">ACTIVE SYSTEMS</h3>
         <table>
-            <thead><tr><th>Game Name</th><th>Actions</th></tr></thead>
+            <thead><tr><th>GAME DIRECTORY</th><th>EXECUTE COMMAND</th></tr></thead>
             <tbody id="games-list-body"></tbody>
         </table>
     </div>
 
     <!-- TAB 1: Team Management -->
     <div id="teamsTab" class="tab-content">
-        <div id="teamLockMessage" class="lock-msg">🔒 Tournament has started! Roster is locked.</div>
+        <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: TOURNAMENT IN PROGRESS.</div>
         <div id="teamSetupControls">
-            <h3>Add a New Team</h3>
-            <input type="text" id="teamName" placeholder="Enter Team Name">
-            <button onclick="addTeam()">Add Team</button>
+            <h3>REGISTER TEAM UNIT</h3>
+            <input type="text" id="teamName" placeholder="Enter Team Designation">
+            <button class="btn-primary" onclick="addTeam()">REGISTER</button>
         </div>
-        <h3 style="margin-top: 30px;">Current Teams (<span id="teamCount">0</span>)</h3>
+        <h3 style="margin-top: 40px;">UNIT ROSTER (<span id="teamCount">0</span>)</h3>
         <table>
-            <thead><tr><th>Team Name</th><th>Action</th></tr></thead>
+            <thead><tr><th>TEAM DESIGNATION</th><th>ACTION</th></tr></thead>
             <tbody id="teams-list-body"></tbody>
         </table>
-        <button id="doneTeamsBtn" class="btn-blue" onclick="lockTeamsAndProceed()" style="background-color: #2c3e50;">✅ Done - Proceed to Matches</button>
+        <button id="doneTeamsBtn" class="btn-primary" onclick="lockTeamsAndProceed()" style="width: 100%; margin-top: 20px;">[ INITIATE TOURNAMENT ]</button>
     </div>
 
     <!-- TAB 2: Rounds Management -->
     <div id="roundsTab" class="tab-content">
-        
-        <!-- Game Finished Banner -->
-        <div id="gameLockedMessage" class="lock-msg" style="background: #f8d7da; border-left-color: #dc3545; color: #721c24;">
-            🔒 This game is finished. Rounds and scores are permanently locked.
+        <div id="gameLockedMessage" class="lock-msg">
+            SYSTEM LOCKED: TOURNAMENT CONCLUDED. DATA FINALIZED.
         </div>
 
-        <p id="matchesInfoMsg" style="font-size: 13px; color: gray; margin-top: 0;">Scores auto-save when you click away.</p>
+        <p id="matchesInfoMsg" style="font-size: 13px; color: #8b949e; margin-top: 0; font-family: 'Rajdhani', sans-serif;">DATA AUTO-SAVES UPON INPUT.</p>
         
         <div id="matches-container"></div>
         
-        <button id="generateRoundBtn" class="btn-blue" onclick="generateNextRound()">Generate Round 1</button>
-        <button id="finishGameBtn" class="btn-red" onclick="finishGame()" style="width: 100%; margin-top: 15px; font-size: 16px; background-color: #e74c3c; display: none;">🏁 Finish Game</button>
+        <button id="generateRoundBtn" class="btn-primary" onclick="generateNextRound()" style="width: 100%; margin-top: 20px;">GENERATE ROUND 1 (SWISS PROTOCOL)</button>
+        <button id="finishGameBtn" class="btn-red" onclick="finishGame()" style="width: 100%; margin-top: 15px; font-size: 16px; display: none;">TERMINATE GAME (LOCK ALL SCORES)</button>
     </div>
 </div>
 
@@ -104,7 +128,6 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
     authDomain: "makerobot-blitz.firebaseapp.com",
@@ -136,7 +159,7 @@
 
   window.switchTab = function(tabId, btnElement) {
     if ((tabId === 'teamsTab' || tabId === 'roundsTab') && !currentGameId) {
-        return alert("Please select a game from the 'Games' tab first!");
+        return alert("PLEASE SELECT A TARGET GAME IN THE SYSTEMS DIRECTORY FIRST.");
     }
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -154,15 +177,15 @@
           const game = docSnap.data();
           allGamesData[docSnap.id] = game;
           
-          const lockedBadge = game.isLocked ? `<span style="color:#e74c3c; font-size:12px; margin-left: 10px;">(Finished)</span>` : "";
+          const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
           
           tbody.innerHTML += `
               <tr>
-                  <td style="font-weight: bold; text-align: left; padding-left: 15px;">${game.name} ${lockedBadge}</td>
+                  <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
                   <td>
-                      <button class="btn-manage" onclick="selectGame('${docSnap.id}')">Manage</button>
-                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">Restart</button>
-                      <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">Delete</button>
+                      <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
+                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
+                      <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
                   </td>
               </tr>
           `;
@@ -182,7 +205,7 @@
   };
 
   window.deleteGame = async function(id, name) {
-      if(confirm(`Are you sure you want to delete the ENTIRE GAME "${name}" and all its scores?`)) {
+      if(confirm(`WARNING: THIS WILL PURGE THE ENTIRE GAME DIRECTORY "${name}". PROCEED?`)) {
           if(currentGameId === id) {
               currentGameId = null;
               document.getElementById("activeGameDisplay").style.display = "none";
@@ -191,32 +214,18 @@
       }
   };
 
-  // NEW RESTART FEATURE
   window.restartGame = async function(id, name) {
-      if(!confirm(`⚠️ Are you sure you want to RESTART "${name}"?\n\nAll matches and scores will be permanently deleted! The teams will remain registered so you can run the tournament again.`)) return;
-
-      // 1. Unlock the game
+      if(!confirm(`⚠️ SYSTEM OVERRIDE: REBOOT "${name}"?\nAll match data will be purged. Team units will remain in the roster.`)) return;
       await updateDoc(doc(db, "games", id), { isLocked: false });
-
-      // 2. Delete all matches for this game
       const matchesSnap = await getDocs(collection(db, "games", id, "matches"));
       const matchPromises = [];
-      matchesSnap.forEach(matchDoc => {
-          matchPromises.push(deleteDoc(doc(db, "games", id, "matches", matchDoc.id)));
-      });
+      matchesSnap.forEach(matchDoc => { matchPromises.push(deleteDoc(doc(db, "games", id, "matches", matchDoc.id))); });
       await Promise.all(matchPromises);
-
-      // 3. Reset all teams' points and balls to 0
       const teamsSnap = await getDocs(collection(db, "games", id, "teams"));
       const teamPromises = [];
-      teamsSnap.forEach(teamDoc => {
-          teamPromises.push(updateDoc(doc(db, "games", id, "teams", teamDoc.id), { points: 0, balls: 0 }));
-      });
+      teamsSnap.forEach(teamDoc => { teamPromises.push(updateDoc(doc(db, "games", id, "teams", teamDoc.id), { points: 0, balls: 0 })); });
       await Promise.all(teamPromises);
-
-      alert(`Game "${name}" has been restarted!\n\nAll scores are wiped. You can now edit the team roster and start Round 1 again.`);
-      
-      // Auto-select this game to jump right back in
+      alert(`SYSTEM REBOOTED: "${name}"\nScores zeroed. Roster unlocked.`);
       selectGame(id);
   };
 
@@ -226,7 +235,7 @@
       currentGameIsLocked = game.isLocked || false;
       
       document.getElementById("activeGameDisplay").style.display = "block";
-      document.getElementById("activeGameDisplay").innerText = `🛠 Currently Managing: ${game.name}`;
+      document.getElementById("activeGameDisplay").innerText = `TARGET GAME: ${game.name}`;
       
       if(unsubTeams) unsubTeams();
       if(unsubMatches) unsubMatches();
@@ -250,9 +259,7 @@
               document.getElementById("doneTeamsBtn").style.display = "none";
               document.getElementById("teamLockMessage").style.display = "block";
               
-              if(!currentGameIsLocked) {
-                  document.getElementById("finishGameBtn").style.display = "block";
-              }
+              if(!currentGameIsLocked) document.getElementById("finishGameBtn").style.display = "block";
           } else {
               isTournamentStarted = false;
               document.getElementById("teamSetupControls").style.display = "block";
@@ -270,19 +277,19 @@
               roundsData[match.round].push(match);
           });
 
-          document.getElementById("generateRoundBtn").innerText = `Generate Round ${currentMaxRound + 1}`;
+          document.getElementById("generateRoundBtn").innerText = `EXECUTE ROUND ${currentMaxRound + 1} (SWISS PROTOCOL)`;
 
           const disabledAttr = currentGameIsLocked ? "disabled" : "";
 
           for(let r = 1; r <= currentMaxRound; r++) {
               if(!roundsData[r]) continue;
-              let html = `<h3 class="round-header">🏆 Round ${r}</h3><table><thead><tr><th>Match</th><th>Team</th><th>Score (Balls Left)</th></tr></thead><tbody>`;
+              let html = `<h3 class="round-header">ROUND ${r}</h3><table><thead><tr><th>MATCH</th><th>UNIT</th><th>BALLS LEFT</th></tr></thead><tbody>`;
               roundsData[r].forEach((match, index) => {
                   const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
                   const bBalls = match.teamB_balls === null ? "" : match.teamB_balls;
                   html += `
                       <tr>
-                          <td rowspan="2" style="font-weight:bold;">#${index+1}</td>
+                          <td rowspan="2" style="font-weight:bold; font-family: 'Orbitron', sans-serif;">#${index+1}</td>
                           <td class="team-name">${match.teamA_name}</td>
                           <td><input type="number" min="0" max="10" value="${aBalls}" ${disabledAttr} onchange="updateScore('${match.id}', 'A', this.value)"></td>
                       </tr>
@@ -321,20 +328,18 @@
           finishBtn.style.display = isTournamentStarted ? "block" : "none";
       }
       
-      document.querySelectorAll("#matches-container input").forEach(input => {
-          input.disabled = currentGameIsLocked;
-      });
+      document.querySelectorAll("#matches-container input").forEach(input => { input.disabled = currentGameIsLocked; });
   }
 
   window.finishGame = async function() {
-      if(!confirm("🏁 Are you sure you want to finish this game?\n\nThis will permanently lock all scores and prevent generating new rounds.")) return;
+      if(!confirm("SYSTEM PROMPT: TERMINATE GAME?\nThis action finalizes the data and locks all inputs.")) return;
       await updateDoc(doc(db, "games", currentGameId), { isLocked: true });
-      alert("Game finished successfully! Scores are now locked.");
+      alert("GAME TERMINATED. DATA LOCKED.");
   };
 
   // --- TEAM MANAGEMENT ---
   window.lockTeamsAndProceed = function() {
-      if(currentTeamsList.length < 2) return alert("You need at least 2 teams!");
+      if(currentTeamsList.length < 2) return alert("MINIMUM 2 UNITS REQUIRED FOR SIMULATION.");
       switchTab('roundsTab', document.getElementById('tabBtn2'));
   };
 
@@ -344,9 +349,9 @@
       tbody.innerHTML = "";
       currentTeamsList.forEach(team => {
           const actionHtml = isTournamentStarted 
-              ? `<span style="color: #95a5a6; font-style: italic;">Locked</span>` 
-              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">Delete</button>`;
-          tbody.innerHTML += `<tr><td style="text-align: left; padding-left: 15px; font-weight: bold;">${team.name}</td><td>${actionHtml}</td></tr>`;
+              ? `<span style="color: #6e7681; font-style: italic;">LOCKED</span>` 
+              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">DEL</button>`;
+          tbody.innerHTML += `<tr><td style="text-align: left; padding-left: 15px; font-weight: bold; color:white;">${team.name}</td><td>${actionHtml}</td></tr>`;
       });
   }
 
@@ -358,13 +363,12 @@
   };
 
   window.deleteTeam = async function(id, name) {
-      if(confirm(`Delete ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
+      if(confirm(`DELETE UNIT: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
   };
 
   // --- ROUNDS & SCORING ---
   window.updateScore = async function(matchId, teamSide, value) {
-      if(currentGameIsLocked) return alert("Game is finished! Scores are locked.");
-      
+      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
       const updateData = {};
       const numValue = value === "" ? null : parseInt(value);
       if (teamSide === 'A') updateData.teamA_balls = numValue;
@@ -375,12 +379,11 @@
 
   // SWISS PAIRING GENERATOR
   window.generateNextRound = async function() {
-      if(currentGameIsLocked) return alert("Game is finished! Cannot generate new rounds.");
+      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
       
       const targetRound = currentMaxRound + 1;
-      if(!confirm(`Generate matches for Round ${targetRound}?`)) return;
+      if(!confirm(`EXECUTE ROUND ${targetRound}?`)) return;
 
-      // 1. Fetch match history to build a "Memory" of who played who
       const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
       let playedHistory = {}; 
       
@@ -388,61 +391,42 @@
           const m = docSnap.data();
           if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
           if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
-          
           playedHistory[m.teamA_id].add(m.teamB_id);
           playedHistory[m.teamB_id].add(m.teamA_id);
       });
 
-      // 2. Sort Teams (Round 1 = Random | Round 2+ = Swiss Ranking)
       let teams = [...currentTeamsList];
-      if(targetRound === 1) {
-          teams = teams.sort(() => Math.random() - 0.5); 
-      } else {
-          teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); 
-      }
+      if(targetRound === 1) { teams = teams.sort(() => Math.random() - 0.5); } 
+      else { teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); }
 
-      // 3. Swiss Pairing Algorithm (No Rematches)
       let pairings = [];
       let unpaired = [...teams];
 
       while(unpaired.length > 1) {
           let teamA = unpaired.shift(); 
           let matchedIndex = -1;
-          
           for(let i = 0; i < unpaired.length; i++) {
               let potentialOpponent = unpaired[i];
               let historyA = playedHistory[teamA.id] || new Set();
-              
-              if(!historyA.has(potentialOpponent.id)) {
-                  matchedIndex = i; 
-                  break;
-              }
+              if(!historyA.has(potentialOpponent.id)) { matchedIndex = i; break; }
           }
-          
           if(matchedIndex === -1) {
               matchedIndex = 0;
               console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
           }
-          
           let teamB = unpaired.splice(matchedIndex, 1)[0]; 
           pairings.push({ teamA, teamB });
       }
 
       let byeTeam = unpaired.length === 1 ? unpaired[0] : null;
 
-      // 4. Save Pairings to Database
       for(let pair of pairings) {
           await addDoc(collection(db, "games", currentGameId, "matches"), {
-              round: targetRound,
-              teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
-              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name,
-              teamA_balls: null, teamB_balls: null
+              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
+              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
           });
       }
-
-      if(byeTeam) {
-          alert(`${byeTeam.name} has a BYE in Round ${targetRound} (Odd number of teams).`);
-      }
+      if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);
   };
 
   async function recalculateStandings() {
@@ -464,9 +448,7 @@
       });
 
       for (let teamId in teamStats) {
-          await updateDoc(doc(db, "games", currentGameId, "teams", teamId), {
-              points: teamStats[teamId].points, balls: teamStats[teamId].balls
-          });
+          await updateDoc(doc(db, "games", currentGameId, "teams", teamId), { points: teamStats[teamId].points, balls: teamStats[teamId].balls });
       }
   }
 </script>

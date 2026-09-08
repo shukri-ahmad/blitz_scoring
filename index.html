@@ -15,12 +15,12 @@
         th { background-color: #2c3e50; color: white; }
         .rank-1 { background-color: #fff3cd !important; font-weight: bold; }
         
-        /* Match Table Specific Styles */
+        .round-header { background-color: #ecf0f1; padding: 10px; margin-top: 25px; border-radius: 4px; border-left: 4px solid #3498db; font-size: 18px; font-weight: bold;}
         .match-table td { padding: 10px; }
-        .divider-row td { background-color: #2c3e50; height: 4px; padding: 0; }
+        .divider-row td { background-color: #2c3e50; height: 3px; padding: 0; }
         .team-name { font-weight: bold; text-align: left; padding-left: 20px; }
         .score-box { font-size: 1.2em; font-weight: bold; background: #eee; border-radius: 4px; display: inline-block; width: 40px; padding: 5px; }
-        .winner { background: #d4edda; color: #155724; }
+        .winner { background: #d4edda; color: #155724; border: 2px solid #2ecc71; }
     </style>
 </head>
 <body>
@@ -37,22 +37,16 @@
 </div>
 
 <div class="container">
-    <h2>⚔️ Current Matches</h2>
-    <table class="match-table">
-        <thead>
-            <tr><th>Match</th><th>Team</th><th>Score (Balls Left)</th></tr>
-        </thead>
-        <tbody id="matches-body">
-            <tr><td colspan="3">Waiting for matches to be generated...</td></tr>
-        </tbody>
-    </table>
+    <h2>⚔️ Tournament Matches</h2>
+    <div id="matches-container">
+        <p style="text-align: center;">Waiting for matches to start...</p>
+    </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
     authDomain: "makerobot-blitz.firebaseapp.com",
@@ -84,43 +78,53 @@
     });
   });
 
-  // 2. Matches Listener
-  onSnapshot(collection(db, "matches"), (snapshot) => {
-    const tbody = document.getElementById("matches-body");
-    if(snapshot.empty) {
-        tbody.innerHTML = "<tr><td colspan='3'>Waiting for matches to be generated...</td></tr>";
-        return;
-    }
-    tbody.innerHTML = "";
-    let matchNumber = 1;
+  // 2. Grouped Matches Listener
+  const qMatches = query(collection(db, "matches"), orderBy("round", "asc"));
+  onSnapshot(qMatches, (snapshot) => {
+    const container = document.getElementById("matches-container");
+    if(snapshot.empty) return;
+    container.innerHTML = "";
+    
+    let roundsData = {};
+    let maxRound = 0;
 
     snapshot.forEach((docSnap) => {
         const match = docSnap.data();
-        const aBalls = match.teamA_balls === null ? "-" : match.teamA_balls;
-        const bBalls = match.teamB_balls === null ? "-" : match.teamB_balls;
-        
-        let aClass = "score-box", bClass = "score-box";
-        
-        // Highlight winner (lower balls = winner)
-        if(aBalls !== "-" && bBalls !== "-") {
-            if(aBalls < bBalls) aClass += " winner";
-            if(bBalls < aBalls) bClass += " winner";
-        }
-
-        tbody.innerHTML += `
-            <tr>
-                <td rowspan="2" style="font-weight:bold;">#${matchNumber}</td>
-                <td class="team-name">${match.teamA_name}</td>
-                <td><span class="${aClass}">${aBalls}</span></td>
-            </tr>
-            <tr>
-                <td class="team-name">${match.teamB_name}</td>
-                <td><span class="${bClass}">${bBalls}</span></td>
-            </tr>
-            <tr class="divider-row"><td colspan="3"></td></tr>
-        `;
-        matchNumber++;
+        if(match.round > maxRound) maxRound = match.round;
+        if(!roundsData[match.round]) roundsData[match.round] = [];
+        roundsData[match.round].push(match);
     });
+
+    for(let r = 1; r <= maxRound; r++) {
+        if(!roundsData[r]) continue;
+        let html = `<div class="round-header">🏆 Round ${r}</div><table class="match-table"><thead><tr><th>Match</th><th>Team</th><th>Score</th></tr></thead><tbody>`;
+        
+        roundsData[r].forEach((match, index) => {
+            const aBalls = match.teamA_balls === null ? "-" : match.teamA_balls;
+            const bBalls = match.teamB_balls === null ? "-" : match.teamB_balls;
+            let aClass = "score-box", bClass = "score-box";
+            
+            if(aBalls !== "-" && bBalls !== "-") {
+                if(aBalls < bBalls) aClass += " winner";
+                if(bBalls < aBalls) bClass += " winner";
+            }
+
+            html += `
+                <tr>
+                    <td rowspan="2" style="font-weight:bold;">#${index+1}</td>
+                    <td class="team-name">${match.teamA_name}</td>
+                    <td><span class="${aClass}">${aBalls}</span></td>
+                </tr>
+                <tr>
+                    <td class="team-name">${match.teamB_name}</td>
+                    <td><span class="${bClass}">${bBalls}</span></td>
+                </tr>
+                <tr class="divider-row"><td colspan="3"></td></tr>
+            `;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML += html;
+    }
   });
 </script>
 

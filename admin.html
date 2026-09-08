@@ -121,7 +121,7 @@
   let currentMaxRound = 0;
   let isTournamentStarted = false;
   let currentTeamsList = [];
-  let allGamesData = {}; // Stores info about all games (including lock status)
+  let allGamesData = {}; 
   let currentGameIsLocked = false;
   
   let unsubTeams = null;
@@ -166,7 +166,6 @@
           `;
       });
 
-      // If the game we are currently managing gets locked/updated, apply UI changes
       if(currentGameId && allGamesData[currentGameId]) {
           currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
           applyGameLockUI();
@@ -267,7 +266,7 @@
               container.innerHTML += html;
           }
           
-          applyGameLockUI(); // Ensure UI matches the lock status
+          applyGameLockUI(); 
       });
 
       switchTab('teamsTab', document.getElementById('tabBtn1'));
@@ -288,11 +287,9 @@
           generateBtn.style.display = "block";
           matchesMsg.style.display = "block";
           lockMsg.style.display = "none";
-          // Only show Finish button if matches exist
           finishBtn.style.display = isTournamentStarted ? "block" : "none";
       }
       
-      // Update any rendered input fields dynamically
       document.querySelectorAll("#matches-container input").forEach(input => {
           input.disabled = currentGameIsLocked;
       });
@@ -345,27 +342,79 @@
       recalculateStandings();
   };
 
+  // SWISS PAIRING GENERATOR
   window.generateNextRound = async function() {
       if(currentGameIsLocked) return alert("Game is finished! Cannot generate new rounds.");
       
       const targetRound = currentMaxRound + 1;
       if(!confirm(`Generate matches for Round ${targetRound}?`)) return;
 
-      let teams = [...currentTeamsList];
-      if(targetRound === 1) teams = teams.sort(() => Math.random() - 0.5); 
-      else teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); 
+      // 1. Fetch match history to build a "Memory" of who played who
+      const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
+      let playedHistory = {}; 
+      
+      matchesSnap.forEach(docSnap => {
+          const m = docSnap.data();
+          if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
+          if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
+          
+          // Record that these two teams have played each other
+          playedHistory[m.teamA_id].add(m.teamB_id);
+          playedHistory[m.teamB_id].add(m.teamA_id);
+      });
 
-      for(let i = 0; i < teams.length; i += 2) {
-          if(i + 1 < teams.length) {
-              await addDoc(collection(db, "games", currentGameId, "matches"), {
-                  round: targetRound,
-                  teamA_id: teams[i].id, teamA_name: teams[i].name,
-                  teamB_id: teams[i+1].id, teamB_name: teams[i+1].name,
-                  teamA_balls: null, teamB_balls: null
-              });
-          } else {
-              alert(`${teams[i].name} has a BYE in Round ${targetRound}`);
+      // 2. Sort Teams (Round 1 = Random | Round 2+ = Swiss Ranking)
+      let teams = [...currentTeamsList];
+      if(targetRound === 1) {
+          teams = teams.sort(() => Math.random() - 0.5); 
+      } else {
+          // Sort by Highest Points -> Lowest Balls
+          teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); 
+      }
+
+      // 3. Swiss Pairing Algorithm (No Rematches)
+      let pairings = [];
+      let unpaired = [...teams];
+
+      while(unpaired.length > 1) {
+          let teamA = unpaired.shift(); // Take the highest ranked unpaired team
+          let matchedIndex = -1;
+          
+          // Look down the list for the highest ranked opponent they HAVEN'T played
+          for(let i = 0; i < unpaired.length; i++) {
+              let potentialOpponent = unpaired[i];
+              let historyA = playedHistory[teamA.id] || new Set();
+              
+              if(!historyA.has(potentialOpponent.id)) {
+                  matchedIndex = i; // Found a valid opponent!
+                  break;
+              }
           }
+          
+          // Fallback: If they have played everyone left, force a match
+          if(matchedIndex === -1) {
+              matchedIndex = 0;
+              console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
+          }
+          
+          let teamB = unpaired.splice(matchedIndex, 1)[0]; // Remove opponent from unpaired list
+          pairings.push({ teamA, teamB });
+      }
+
+      let byeTeam = unpaired.length === 1 ? unpaired[0] : null;
+
+      // 4. Save Pairings to Database
+      for(let pair of pairings) {
+          await addDoc(collection(db, "games", currentGameId, "matches"), {
+              round: targetRound,
+              teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
+              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name,
+              teamA_balls: null, teamB_balls: null
+          });
+      }
+
+      if(byeTeam) {
+          alert(`${byeTeam.name} has a BYE in Round ${targetRound} (Odd number of teams).`);
       }
   };
 

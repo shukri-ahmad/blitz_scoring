@@ -31,6 +31,9 @@
         .divider-row td { background-color: #2c3e50; height: 3px; padding: 0; }
         .team-name { font-weight: bold; text-align: left; padding-left: 15px; }
         .round-header { background-color: #ecf0f1; padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid #3498db; }
+        
+        /* Lock Message */
+        .lock-msg { display: none; background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin-bottom: 15px; font-weight: bold; color: #856404; }
     </style>
 </head>
 <body id="adminBody">
@@ -43,21 +46,30 @@
 
     <!-- Tabs Menu -->
     <div class="tab-menu">
-        <button class="tab-btn active" onclick="switchTab('teamsTab', this)">1. Team Management</button>
-        <button class="tab-btn" onclick="switchTab('roundsTab', this)">2. Rounds & Scoring</button>
+        <button id="tabBtn1" class="tab-btn active" onclick="switchTab('teamsTab', this)">1. Team Management</button>
+        <button id="tabBtn2" class="tab-btn" onclick="switchTab('roundsTab', this)">2. Rounds & Scoring</button>
     </div>
 
     <!-- TAB 1: Team Management -->
     <div id="teamsTab" class="tab-content active">
-        <h3>Add a New Team</h3>
-        <input type="text" id="teamName" placeholder="Enter Team Name">
-        <button onclick="addTeam()">Add Team</button>
+        
+        <div id="teamLockMessage" class="lock-msg">
+            🔒 Tournament has started! The team roster is locked. You can no longer add or delete teams.
+        </div>
+
+        <div id="teamSetupControls">
+            <h3>Add a New Team</h3>
+            <input type="text" id="teamName" placeholder="Enter Team Name">
+            <button onclick="addTeam()">Add Team</button>
+        </div>
 
         <h3 style="margin-top: 30px;">Current Teams (<span id="teamCount">0</span>)</h3>
         <table>
             <thead><tr><th>Team Name</th><th>Action</th></tr></thead>
             <tbody id="teams-list-body"></tbody>
         </table>
+
+        <button id="doneTeamsBtn" class="btn-blue" onclick="lockTeamsAndProceed()" style="margin-top: 30px; background-color: #2c3e50;">✅ Done - Proceed to Matches</button>
     </div>
 
     <!-- TAB 2: Rounds Management -->
@@ -78,6 +90,7 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // Your Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
     authDomain: "makerobot-blitz.firebaseapp.com",
@@ -92,6 +105,8 @@
   const db = getFirestore(app);
 
   let currentMaxRound = 0;
+  let isTournamentStarted = false;
+  let currentTeamsList = [];
 
   // Security
   onAuthStateChanged(auth, (user) => {
@@ -108,21 +123,40 @@
     btnElement.classList.add('active');
   };
 
+  // The "Done" Button Logic
+  window.lockTeamsAndProceed = function() {
+      if(currentTeamsList.length < 2) {
+          return alert("You need at least 2 teams to start the tournament!");
+      }
+      switchTab('roundsTab', document.getElementById('tabBtn2'));
+  };
+
   // --- TEAM MANAGEMENT ---
   onSnapshot(collection(db, "teams"), (snapshot) => {
-    document.getElementById("teamCount").innerText = snapshot.size;
-    const tbody = document.getElementById("teams-list-body");
-    tbody.innerHTML = "";
-    snapshot.forEach(docSnap => {
-        const team = docSnap.data();
-        tbody.innerHTML += `
-            <tr>
-                <td style="text-align: left; padding-left: 15px; font-weight: bold;">${team.name}</td>
-                <td><button class="btn-red" onclick="deleteTeam('${docSnap.id}', '${team.name}')">Delete</button></td>
-            </tr>
-        `;
-    });
+    currentTeamsList = [];
+    snapshot.forEach(doc => currentTeamsList.push({ id: doc.id, ...doc.data() }));
+    renderTeamsList();
   });
+
+  function renderTeamsList() {
+      document.getElementById("teamCount").innerText = currentTeamsList.length;
+      const tbody = document.getElementById("teams-list-body");
+      tbody.innerHTML = "";
+      
+      currentTeamsList.forEach(team => {
+          // If tournament started, hide the delete button
+          const actionHtml = isTournamentStarted 
+              ? `<span style="color: #95a5a6; font-style: italic;">Locked</span>` 
+              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">Delete</button>`;
+              
+          tbody.innerHTML += `
+              <tr>
+                  <td style="text-align: left; padding-left: 15px; font-weight: bold;">${team.name}</td>
+                  <td>${actionHtml}</td>
+              </tr>
+          `;
+      });
+  }
 
   window.addTeam = async function() {
     const nameInput = document.getElementById("teamName");
@@ -132,7 +166,7 @@
   };
 
   window.deleteTeam = async function(id, name) {
-    if(confirm(`Are you sure you want to delete ${name}?\nNote: Do not delete teams if matches have already started.`)) {
+    if(confirm(`Are you sure you want to delete ${name}?`)) {
         await deleteDoc(doc(db, "teams", id));
     }
   };
@@ -145,6 +179,22 @@
     
     let roundsData = {};
     currentMaxRound = 0;
+
+    // Check if tournament has started (matches exist)
+    if (snapshot.size > 0) {
+        isTournamentStarted = true;
+        document.getElementById("teamSetupControls").style.display = "none";
+        document.getElementById("doneTeamsBtn").style.display = "none";
+        document.getElementById("teamLockMessage").style.display = "block";
+    } else {
+        isTournamentStarted = false;
+        document.getElementById("teamSetupControls").style.display = "block";
+        document.getElementById("doneTeamsBtn").style.display = "block";
+        document.getElementById("teamLockMessage").style.display = "none";
+    }
+    
+    // Re-render teams list to apply locks
+    renderTeamsList();
 
     snapshot.forEach(docSnap => {
         const match = docSnap.data();
@@ -197,21 +247,19 @@
     const targetRound = currentMaxRound + 1;
     if(!confirm(`Generate matches for Round ${targetRound}?`)) return;
 
-    // Get all teams
     const teamsSnap = await getDocs(collection(db, "teams"));
     let teams = [];
     teamsSnap.forEach(doc => teams.push({id: doc.id, ...doc.data()}));
 
     if(teams.length < 2) return alert("Not enough teams to generate matches.");
 
-    // Swiss Logic: If Round 1, shuffle. If Round 2+, sort by points then balls.
+    // Swiss Logic: Round 1 shuffle, Round 2+ sort by points/balls.
     if(targetRound === 1) {
-        teams = teams.sort(() => Math.random() - 0.5); // Random pairing
+        teams = teams.sort(() => Math.random() - 0.5); 
     } else {
-        teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); // Rank pairing
+        teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); 
     }
 
-    // Create Matches
     for(let i = 0; i < teams.length; i += 2) {
         if(i + 1 < teams.length) {
             await addDoc(collection(db, "matches"), {

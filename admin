@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+
+    <h1>Admin Control Panel</h1>
+    
+    <h3>1. Add a Team</h3>
+    <input type="text" id="teamName" placeholder="Enter Team Name">
+    <button onclick="addTeam()">Add Team</button>
+
+    <h3>2. Enter Match Score</h3>
+    <p>Team A Balls: <input type="number" id="teamABalls" min="0" max="10"></p>
+    <p>Team B Balls: <input type="number" id="teamBBalls" min="0" max="10"></p>
+    <button onclick="submitScore()">Submit Score</button>
+
+    <!-- JavaScript to handle database changes will go here -->
+    
+</body>
+</html>

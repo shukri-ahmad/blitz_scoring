@@ -27,7 +27,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // Your Firebase configuration
+  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
     authDomain: "makerobot-blitz.firebaseapp.com",
@@ -37,6 +37,7 @@
     appId: "1:343992286368:web:e5f99c7df490c1d6369dc5"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 

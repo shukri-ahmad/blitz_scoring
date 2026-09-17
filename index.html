@@ -50,7 +50,7 @@
     <div style="text-align: center; margin-bottom: 10px;">
         <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Logo" style="max-width: 250px;">
         <h2 style="font-size: 32px; color: var(--purple-accent); margin-top: 10px;">MAKEROBOT BLITZ</h2>
-        <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #8b949e; letter-spacing: 2px;">LIVE SWISS STANDINGS</div>
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #8b949e; letter-spacing: 2px;">LIVE TOURNAMENT STANDINGS</div>
     </div>
     
     <div class="game-selector">
@@ -58,7 +58,8 @@
         <select id="publicGameSelect" onchange="loadSelectedGame()"><option>INITIALIZING...</option></select>
     </div>
 
-    <p class="formula-text">RANKED BY: POINTS (WINS/DRAWS) ➔ BUCHHOLZ SCORE ➔ BALLS LEFT</p>
+    <!-- Updated Ranking Logic Text -->
+    <p class="formula-text">RANKED BY: HIGHEST POINTS (WINS/DRAWS) ➔ LEAST BALLS LEFT ➔ TIE-BREAKER MATCH</p>
     
     <table>
         <thead>
@@ -66,11 +67,10 @@
                 <th>RANK</th>
                 <th>TEAM UNIT</th>
                 <th>POINTS</th>
-                <th>BUCHHOLZ SCORE</th>
-                <th>TOTAL BALLS</th>
+                <th>TOTAL BALLS LEFT</th>
             </tr>
         </thead>
-        <tbody id="leaderboard-body"><tr><td colspan="5">AWAITING DATA...</td></tr></tbody>
+        <tbody id="leaderboard-body"><tr><td colspan="4">AWAITING DATA...</td></tr></tbody>
     </table>
 </div>
 
@@ -111,49 +111,22 @@
 
       if(unsubTeams) unsubTeams();
 
-      unsubTeams = onSnapshot(collection(db, "games", gameId, "teams"), async (snapshot) => {
+      unsubTeams = onSnapshot(collection(db, "games", gameId, "teams"), (snapshot) => {
         let teams = [];
-        let teamsMap = {};
 
         snapshot.forEach(documentDoc => {
-            let teamData = { id: documentDoc.id, ...documentDoc.data() };
-            teams.push(teamData);
-            teamsMap[teamData.id] = teamData;
+            teams.push({ id: documentDoc.id, ...documentDoc.data() });
         });
 
-        // Compute Buchholz Score
-        const matchesSnap = await getDocs(collection(db, "games", gameId, "matches"));
-        let playedHistory = {}; 
-        
-        matchesSnap.forEach(docSnap => {
-            const m = docSnap.data();
-            if(m.teamA_balls !== null && m.teamB_balls !== null) {
-                if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = [];
-                if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = [];
-                playedHistory[m.teamA_id].push(m.teamB_id);
-                playedHistory[m.teamB_id].push(m.teamA_id);
-            }
-        });
-
-        teams.forEach(team => {
-            let buchholz = 0;
-            let opponents = playedHistory[team.id] || [];
-            opponents.forEach(oppId => {
-                if(teamsMap[oppId]) buchholz += (teamsMap[oppId].points || 0);
-            });
-            team.buchholzScore = buchholz;
-        });
-
-        // Swiss Sorting: Points -> Buchholz -> Balls Left
+        // Simple Sorting: Points (Descending) -> Balls Left (Ascending/Least is best)
         teams.sort((a, b) => {
             if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
-            if (b.buchholzScore !== a.buchholzScore) return b.buchholzScore - a.buchholzScore;
-            return (b.balls || 0) - (a.balls || 0);
+            return (a.balls || 0) - (b.balls || 0); // Less balls = higher rank
         });
         
         const tbody = document.getElementById("leaderboard-body");
         tbody.innerHTML = ""; 
-        if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='5'>NO TEAMS REGISTERED.</td></tr>";
+        if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='4'>NO TEAMS REGISTERED.</td></tr>";
 
         teams.forEach((team, index) => {
           tbody.innerHTML += `
@@ -161,7 +134,6 @@
               <td style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.2em;">${index + 1}</td>
               <td class="team-name">${team.name}</td>
               <td class="win-box">${team.points || 0}</td>
-              <td style="font-family: 'Orbitron', sans-serif; color:var(--purple-accent); font-weight: bold;">${team.buchholzScore || 0}</td>
               <td style="font-family: 'Orbitron', sans-serif; font-weight: bold;">${team.balls || 0}</td>
             </tr>`;
         });

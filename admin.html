@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Makerobot Blitz</title>
-    <!-- Futuristic Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -79,7 +78,6 @@
 
     <div id="activeGameDisplay" class="active-game-label">TARGET GAME: NULL</div>
 
-    <!-- TAB 0: Games Management -->
     <div id="gamesTab" class="tab-content active">
         <h3>INITIALIZE NEW GAME</h3>
         <input type="text" id="gameName" placeholder="e.g., JUNIOR LEAGUE 2026">
@@ -92,7 +90,6 @@
         </table>
     </div>
 
-    <!-- TAB 1: Team Management -->
     <div id="teamsTab" class="tab-content">
         <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: TOURNAMENT IN PROGRESS.</div>
         <div id="teamSetupControls">
@@ -108,12 +105,8 @@
         <button id="doneTeamsBtn" class="btn-primary" onclick="lockTeamsAndProceed()" style="width: 100%; margin-top: 20px;">[ INITIATE TOURNAMENT ]</button>
     </div>
 
-    <!-- TAB 2: Rounds Management -->
     <div id="roundsTab" class="tab-content">
-        <div id="gameLockedMessage" class="lock-msg">
-            SYSTEM LOCKED: TOURNAMENT CONCLUDED. DATA FINALIZED.
-        </div>
-
+        <div id="gameLockedMessage" class="lock-msg">SYSTEM LOCKED: TOURNAMENT CONCLUDED. DATA FINALIZED.</div>
         <p id="matchesInfoMsg" style="font-size: 13px; color: #8b949e; margin-top: 0; font-family: 'Rajdhani', sans-serif;">DATA AUTO-SAVES UPON INPUT.</p>
         
         <div id="matches-container"></div>
@@ -126,24 +119,22 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  // IMPORT UPDATED WITH "where" FOR MULTI-TENANT QUERYING
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // Your web app's Firebase configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
-    authDomain: "makerobot-blitz.firebaseapp.com",
-    projectId: "makerobot-blitz",
-    storageBucket: "makerobot-blitz.firebasestorage.app",
-    messagingSenderId: "343992286368",
-    appId: "1:343992286368:web:e5f99c7df490c1d6369dc5"
+    apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
+    authDomain: "makerobot-blitz-1ec81.firebaseapp.com",
+    projectId: "makerobot-blitz-1ec81",
+    storageBucket: "makerobot-blitz-1ec81.firebasestorage.app",
+    messagingSenderId: "122915710835",
+    appId: "1:122915710835:web:8f494062147f804e53c706"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
-  // SUPER ADMIN UID (Replace with your actual Firebase User UID)
-  const SUPER_ADMIN_UID = "PASTE_YOUR_SUPER_ADMIN_UID_HERE";
 
   let currentGameId = null;
   let currentMaxRound = 0;
@@ -152,17 +143,12 @@
   let allGamesData = {}; 
   let currentGameIsLocked = false;
   
-  let unsubGamesList = null;
   let unsubTeams = null;
   let unsubMatches = null;
 
   onAuthStateChanged(auth, user => {
-    if (user) {
-        document.getElementById("adminBody").style.display = "block";
-        initGamesListListener(user);
-    } else {
-        window.location.href = "login.html";
-    }
+    if (user) document.getElementById("adminBody").style.display = "block";
+    else window.location.href = "login.html";
   });
   window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
 
@@ -176,56 +162,39 @@
     btnElement.classList.add('active');
   };
 
-  // --- GAME MANAGEMENT (WITH MULTI-ADMIN ISOLATION) ---
-  function initGamesListListener(user) {
-      if(unsubGamesList) unsubGamesList();
+  onSnapshot(collection(db, "games"), (snapshot) => {
+      const tbody = document.getElementById("games-list-body");
+      tbody.innerHTML = "";
+      allGamesData = {};
 
-      let qGames;
-      if (user.uid === SUPER_ADMIN_UID) {
-          qGames = query(collection(db, "games"));
-      } else {
-          qGames = query(collection(db, "games"), where("createdBy", "==", user.uid));
-      }
-
-      unsubGamesList = onSnapshot(qGames, (snapshot) => {
-          const tbody = document.getElementById("games-list-body");
-          tbody.innerHTML = "";
-          allGamesData = {};
-
-          snapshot.forEach(docSnap => {
-              const game = docSnap.data();
-              allGamesData[docSnap.id] = game;
-              
-              const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
-              
-              tbody.innerHTML += `
-                  <tr>
-                      <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
-                      <td>
-                          <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
-                          <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
-                          <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
-                      </td>
-                  </tr>
-              `;
-          });
-
-          if(currentGameId && allGamesData[currentGameId]) {
-              currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
-              applyGameLockUI();
-          }
+      snapshot.forEach(docSnap => {
+          const game = docSnap.data();
+          allGamesData[docSnap.id] = game;
+          
+          const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
+          
+          tbody.innerHTML += `
+              <tr>
+                  <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
+                  <td>
+                      <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
+                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
+                      <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
+                  </td>
+              </tr>
+          `;
       });
-  }
+
+      if(currentGameId && allGamesData[currentGameId]) {
+          currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
+          applyGameLockUI();
+      }
+  });
 
   window.createGame = async function() {
       const name = document.getElementById("gameName").value.trim();
       if(!name) return;
-      await addDoc(collection(db, "games"), { 
-          name: name, 
-          createdAt: new Date(), 
-          createdBy: auth.currentUser.uid, // OWNER UID
-          isLocked: false 
-      });
+      await addDoc(collection(db, "games"), { name: name, createdAt: new Date(), isLocked: false });
       document.getElementById("gameName").value = "";
   };
 
@@ -362,7 +331,6 @@
       alert("GAME TERMINATED. DATA LOCKED.");
   };
 
-  // --- TEAM MANAGEMENT ---
   window.lockTeamsAndProceed = function() {
       if(currentTeamsList.length < 2) return alert("MINIMUM 2 UNITS REQUIRED FOR SIMULATION.");
       switchTab('roundsTab', document.getElementById('tabBtn2'));
@@ -383,12 +351,7 @@
   window.addTeam = async function() {
       const name = document.getElementById("teamName").value.trim();
       if(!name || !currentGameId) return;
-      await addDoc(collection(db, "games", currentGameId, "teams"), { 
-          name: name, 
-          createdBy: auth.currentUser.uid, // OWNER UID FOR SECURE SUBCOLLECTION
-          points: 0, 
-          balls: 0 
-      });
+      await addDoc(collection(db, "games", currentGameId, "teams"), { name: name, points: 0, balls: 0 });
       document.getElementById("teamName").value = ""; 
   };
 
@@ -396,7 +359,6 @@
       if(confirm(`DELETE UNIT: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
   };
 
-  // --- ROUNDS & SCORING ---
   window.updateScore = async function(matchId, teamSide, value) {
       if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
       const updateData = {};
@@ -407,7 +369,6 @@
       recalculateStandings();
   };
 
-  // SWISS PAIRING GENERATOR
   window.generateNextRound = async function() {
       if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
       
@@ -452,14 +413,8 @@
 
       for(let pair of pairings) {
           await addDoc(collection(db, "games", currentGameId, "matches"), {
-              round: targetRound, 
-              createdBy: auth.currentUser.uid, // OWNER UID FOR SECURE SUBCOLLECTION
-              teamA_id: pair.teamA.id, 
-              teamA_name: pair.teamA.name,
-              teamB_id: pair.teamB.id, 
-              teamB_name: pair.teamB.name, 
-              teamA_balls: null, 
-              teamB_balls: null
+              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
+              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
           });
       }
       if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);

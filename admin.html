@@ -95,11 +95,11 @@
     <div id="teamsTab" class="tab-content">
         <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: TOURNAMENT IN PROGRESS.</div>
         <div id="teamSetupControls">
-            <h3>REGISTER TEAM UNIT</h3>
+            <h3>REGISTER TEAM</h3>
             <input type="text" id="teamName" placeholder="Enter Team Designation">
             <button class="btn-primary" onclick="addTeam()">REGISTER</button>
         </div>
-        <h3 style="margin-top: 40px;">UNIT ROSTER (<span id="teamCount">0</span>)</h3>
+        <h3 style="margin-top: 40px;">TEAM ROSTER (<span id="teamCount">0</span>)</h3>
         <table>
             <thead><tr><th>TEAM DESIGNATION</th><th>ACTION</th></tr></thead>
             <tbody id="teams-list-body"></tbody>
@@ -209,7 +209,7 @@
   };
 
   window.restartGame = async function(id, name) {
-      if(!confirm(`⚠️ SYSTEM OVERRIDE: REBOOT "${name}"?\nAll match data will be purged. Team units will remain in the roster.`)) return;
+      if(!confirm(`⚠️ SYSTEM OVERRIDE: REBOOT "${name}"?\nAll match data will be purged. Teams will remain in the roster.`)) return;
       await updateDoc(doc(db, "games", id), { isLocked: false });
       const matchesSnap = await getDocs(collection(db, "games", id, "matches"));
       const matchPromises = [];
@@ -280,7 +280,7 @@
               const disabledAttr = isRoundLocked ? "disabled" : "";
               const lockedBadgeHTML = isRoundLocked ? `<span class="round-locked-badge">[DATA LOCKED]</span>` : ``;
 
-              let html = `<h3 class="round-header"><span>ROUND ${r}</span> ${lockedBadgeHTML}</h3><table><thead><tr><th>MATCH</th><th>UNIT</th><th>BALLS LEFT</th></tr></thead><tbody>`;
+              let html = `<h3 class="round-header"><span>ROUND ${r}</span> ${lockedBadgeHTML}</h3><table><thead><tr><th>MATCH</th><th>TEAM</th><th>BALLS LEFT</th></tr></thead><tbody>`;
               
               roundsData[r].forEach((match, index) => {
                   const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
@@ -352,7 +352,7 @@
   };
 
   window.lockTeamsAndProceed = function() {
-      if(currentTeamsList.length < 2) return alert("MINIMUM 2 UNITS REQUIRED FOR SIMULATION.");
+      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR SIMULATION.");
       switchTab('roundsTab', document.getElementById('tabBtn2'));
   };
 
@@ -376,7 +376,7 @@
   };
 
   window.deleteTeam = async function(id, name) {
-      if(confirm(`DELETE UNIT: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
+      if(confirm(`DELETE TEAM: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
   };
 
   window.updateScore = async function(matchId, teamSide, value) {
@@ -393,7 +393,12 @@
       if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
       
       const targetRound = currentMaxRound + 1;
-      if(!confirm(`EXECUTE ROUND ${targetRound}? \nWARNING: Doing this will permanently lock all scores from Round ${currentMaxRound}.`)) return;
+      let confirmMsg = `EXECUTE ROUND ${targetRound}?`;
+      if (currentMaxRound > 0) {
+          confirmMsg += ` \nWARNING: Doing this will permanently lock all scores from Round ${currentMaxRound}.`;
+      }
+      
+      if(!confirm(confirmMsg)) return;
 
       const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
       let playedHistory = {}; 

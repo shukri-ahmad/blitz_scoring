@@ -66,7 +66,7 @@
     <div class="header-panel">
         <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Logo">
         <div class="header-controls">
-            <a href="index.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
+            <a href="index_blitz.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
             <button class="logout" onclick="logout()">LOGOUT</button>
         </div>
     </div>
@@ -126,7 +126,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  // IMPORT UPDATED WITH "where" FOR MULTI-TENANT QUERYING
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
@@ -141,6 +142,9 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // SUPER ADMIN UID (Replace with your actual Firebase User UID)
+  const SUPER_ADMIN_UID = "PASTE_YOUR_SUPER_ADMIN_UID_HERE";
+
   let currentGameId = null;
   let currentMaxRound = 0;
   let isTournamentStarted = false;
@@ -148,12 +152,17 @@
   let allGamesData = {}; 
   let currentGameIsLocked = false;
   
+  let unsubGamesList = null;
   let unsubTeams = null;
   let unsubMatches = null;
 
   onAuthStateChanged(auth, user => {
-    if (user) document.getElementById("adminBody").style.display = "block";
-    else window.location.href = "login.html";
+    if (user) {
+        document.getElementById("adminBody").style.display = "block";
+        initGamesListListener(user);
+    } else {
+        window.location.href = "login.html";
+    }
   });
   window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
 
@@ -167,40 +176,56 @@
     btnElement.classList.add('active');
   };
 
-  // --- GAME MANAGEMENT ---
-  onSnapshot(collection(db, "games"), (snapshot) => {
-      const tbody = document.getElementById("games-list-body");
-      tbody.innerHTML = "";
-      allGamesData = {};
+  // --- GAME MANAGEMENT (WITH MULTI-ADMIN ISOLATION) ---
+  function initGamesListListener(user) {
+      if(unsubGamesList) unsubGamesList();
 
-      snapshot.forEach(docSnap => {
-          const game = docSnap.data();
-          allGamesData[docSnap.id] = game;
-          
-          const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
-          
-          tbody.innerHTML += `
-              <tr>
-                  <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
-                  <td>
-                      <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
-                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
-                      <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
-                  </td>
-              </tr>
-          `;
-      });
-
-      if(currentGameId && allGamesData[currentGameId]) {
-          currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
-          applyGameLockUI();
+      let qGames;
+      if (user.uid === SUPER_ADMIN_UID) {
+          qGames = query(collection(db, "games"));
+      } else {
+          qGames = query(collection(db, "games"), where("createdBy", "==", user.uid));
       }
-  });
+
+      unsubGamesList = onSnapshot(qGames, (snapshot) => {
+          const tbody = document.getElementById("games-list-body");
+          tbody.innerHTML = "";
+          allGamesData = {};
+
+          snapshot.forEach(docSnap => {
+              const game = docSnap.data();
+              allGamesData[docSnap.id] = game;
+              
+              const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
+              
+              tbody.innerHTML += `
+                  <tr>
+                      <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
+                      <td>
+                          <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
+                          <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
+                          <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
+                      </td>
+                  </tr>
+              `;
+          });
+
+          if(currentGameId && allGamesData[currentGameId]) {
+              currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
+              applyGameLockUI();
+          }
+      });
+  }
 
   window.createGame = async function() {
       const name = document.getElementById("gameName").value.trim();
       if(!name) return;
-      await addDoc(collection(db, "games"), { name: name, createdAt: new Date(), isLocked: false });
+      await addDoc(collection(db, "games"), { 
+          name: name, 
+          createdAt: new Date(), 
+          createdBy: auth.currentUser.uid, // OWNER UID
+          isLocked: false 
+      });
       document.getElementById("gameName").value = "";
   };
 
@@ -358,7 +383,12 @@
   window.addTeam = async function() {
       const name = document.getElementById("teamName").value.trim();
       if(!name || !currentGameId) return;
-      await addDoc(collection(db, "games", currentGameId, "teams"), { name: name, points: 0, balls: 0 });
+      await addDoc(collection(db, "games", currentGameId, "teams"), { 
+          name: name, 
+          createdBy: auth.currentUser.uid, // OWNER UID FOR SECURE SUBCOLLECTION
+          points: 0, 
+          balls: 0 
+      });
       document.getElementById("teamName").value = ""; 
   };
 
@@ -422,8 +452,14 @@
 
       for(let pair of pairings) {
           await addDoc(collection(db, "games", currentGameId, "matches"), {
-              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
-              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
+              round: targetRound, 
+              createdBy: auth.currentUser.uid, // OWNER UID FOR SECURE SUBCOLLECTION
+              teamA_id: pair.teamA.id, 
+              teamA_name: pair.teamA.name,
+              teamB_id: pair.teamB.id, 
+              teamB_name: pair.teamB.name, 
+              teamA_balls: null, 
+              teamB_balls: null
           });
       }
       if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);

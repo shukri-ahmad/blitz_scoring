@@ -4,85 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Makerobot Blitz</title>
-    <!-- Futuristic Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --red-gear: #e72429;
             --blue-gear: #1f4179;
-            --blitz-grad: linear-gradient(90deg, #1f4179 0%, #9e58cc 100%);
+            --purple-grad: linear-gradient(90deg, #3d1259 0%, #7b2cbf 100%);
+            --purple-accent: #9d4edd;
             --bg-dark: #090c10;
             --panel-bg: #111822;
             --border-glow: #1f4179;
             --text-main: #c9d1d9;
+            --neon-green: #00ff88;
         }
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 20px; display: none; background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%);}
-        .container { max-width: 750px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); }
+        .container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); }
         
         .header-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 15px;}
-        .header-panel img { max-width: 150px; }
-        .header-controls a { color: #9e58cc; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; margin-right: 15px;}
+        .header-panel img { max-width: 120px; }
+        .header-controls a { color: var(--purple-accent); text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; margin-right: 15px; transition: 0.3s;}
+        .header-controls a:hover { color: white; }
         
         h1, h2, h3 { font-family: 'Orbitron', sans-serif; color: white; text-transform: uppercase; letter-spacing: 1px;}
-        h1 { margin: 0; font-size: 24px;}
         
         .tab-menu { display: flex; border-bottom: 2px solid #30363d; margin-bottom: 25px; }
         .tab-btn { flex: 1; padding: 12px; cursor: pointer; background: rgba(0,0,0,0.3); border: 1px solid transparent; font-size: 15px; font-weight: bold; color: #8b949e; font-family: 'Orbitron', sans-serif; transition: 0.3s; }
         .tab-btn:hover { background: rgba(31, 65, 121, 0.3); color: white;}
-        .tab-btn.active { background: var(--panel-bg); color: white; border: 1px solid #30363d; border-bottom: 2px solid var(--panel-bg); margin-bottom: -2px; border-top: 2px solid #9e58cc;}
+        .tab-btn.active { background: var(--panel-bg); color: white; border: 1px solid #30363d; border-bottom: 2px solid var(--panel-bg); margin-bottom: -2px; border-top: 2px solid var(--purple-accent);}
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
         input[type="text"] { padding: 10px; width: 65%; border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: white; font-family: 'Rajdhani', sans-serif; font-size: 16px;}
-        input[type="number"] { width: 60px; padding: 8px; text-align: center; font-weight: bold; border: 2px solid var(--blue-gear); border-radius: 4px; background: #0d1117; color: white; font-family: 'Orbitron', sans-serif; font-size: 16px;}
-        input[type="number"]:disabled { background-color: #090c10; border-color: #30363d; color: #484f58; cursor: not-allowed; }
+        input:focus { outline: none; border-color: var(--purple-accent); box-shadow: 0 0 8px rgba(157, 78, 221, 0.4); }
         
         button { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s;}
-        button.btn-primary { background: var(--blitz-grad); box-shadow: 0 4px 15px rgba(158, 88, 204, 0.3); }
+        button.btn-primary { background: var(--purple-grad); box-shadow: 0 4px 15px rgba(123, 44, 191, 0.3); }
         button.btn-primary:hover { filter: brightness(1.2); }
-        button.btn-blue { background-color: var(--blue-gear); width: 100%; margin-top: 15px; font-size: 16px; border: 1px solid #30363d;}
-        button.btn-blue:hover { background-color: #2b57a0; }
-        button.btn-red { background-color: var(--red-gear); padding: 5px 10px; font-size: 12px; }
+        button.btn-blue { background-color: var(--blue-gear); }
+        button.btn-red { background-color: var(--red-gear); }
+        button.btn-green { background-color: #27ae60; color: white; }
+        button.btn-gray { background-color: #484f58; color: #c9d1d9; cursor: not-allowed; }
         button.btn-manage { background-color: #f39c12; padding: 5px 10px; font-size: 12px; color: black; }
         button.btn-restart { background-color: #9e58cc; padding: 5px 10px; font-size: 12px; }
         .logout { background-color: transparent; border: 1px solid var(--red-gear); color: var(--red-gear); font-size: 12px; padding: 5px 10px;}
         .logout:hover { background-color: var(--red-gear); color: white;}
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 18px;}
-        td, th { padding: 12px; border: 1px solid #30363d; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 16px;}
+        td, th { padding: 12px; border: 1px solid #30363d; text-align: center; vertical-align: middle;}
         th { background: #0d1117; color: #8b949e; font-family: 'Orbitron', sans-serif; font-size: 14px;}
-        .divider-row td { background-color: var(--blue-gear); height: 2px; padding: 0; opacity: 0.5; border: none;}
-        .team-name { font-weight: bold; text-align: left; padding-left: 15px; color: white;}
-        .round-header { background: var(--blue-gear); padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid var(--red-gear); color: white;}
+        .team-name { font-weight: bold; text-align: left; padding-left: 15px; color: white; font-size: 1.2em;}
         
-        .lock-msg { display: none; background: rgba(231, 36, 41, 0.1); padding: 15px; border-left: 4px solid var(--red-gear); margin-bottom: 15px; font-weight: bold; color: #ff7b72; font-family: 'Orbitron', sans-serif;}
+        .timer-display { 
+            font-family: 'Orbitron', monospace; 
+            font-size: 1.2em; 
+            font-weight: 700; 
+            background: #0d1117; 
+            padding: 6px 10px; 
+            border-radius: 4px; 
+            border: 1px solid #30363d; 
+            display: inline-flex; 
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .digit-slot {
+            display: inline-block;
+            width: 0.75em;
+            text-align: center;
+        }
+
         .active-game-label { background: rgba(31, 65, 121, 0.2); padding: 12px; border-radius: 4px; color: #79c0ff; font-weight: bold; margin-bottom: 20px; border: 1px solid var(--blue-gear); display: none; font-family: 'Orbitron', sans-serif;}
+        .lock-msg { display: none; background: rgba(231, 36, 41, 0.1); padding: 15px; border-left: 4px solid var(--red-gear); margin-bottom: 15px; font-weight: bold; color: #ff7b72; font-family: 'Orbitron', sans-serif;}
     </style>
 </head>
 <body id="adminBody">
 
 <div class="container">
     <div class="header-panel">
-        <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Logo">
+        <div>
+            <div style="font-family: 'Orbitron', sans-serif; color: var(--purple-accent); font-size: 20px; font-weight: 900; letter-spacing: 2px;">MAKEROBOT BLITZ</div>
+            <div style="font-family: 'Orbitron', sans-serif; color: #8b949e; font-size: 12px; margin-top: 2px;">ADMIN CONTROL TERMINAL</div>
+        </div>
         <div class="header-controls">
-            <a href="index.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
+            <a href="index_blitz.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
             <button class="logout" onclick="logout()">LOGOUT</button>
         </div>
     </div>
     
     <div class="tab-menu">
-        <button id="tabBtn0" class="tab-btn active" onclick="switchTab('gamesTab', this)">SYSTEM: GAMES</button>
-        <button id="tabBtn1" class="tab-btn" onclick="switchTab('teamsTab', this)">ROSTER: TEAMS</button>
-        <button id="tabBtn2" class="tab-btn" onclick="switchTab('roundsTab', this)">DATA: SCORES</button>
+        <button id="tabBtn0" class="tab-btn active" onclick="switchTab('gamesTab', this)">1. GAMES</button>
+        <button id="tabBtn1" class="tab-btn" onclick="switchTab('teamsTab', this)">2. TEAMS</button>
+        <button id="tabBtn2" class="tab-btn" onclick="switchTab('matchesTab', this)">3. MATCHES</button>
     </div>
 
     <div id="activeGameDisplay" class="active-game-label">TARGET GAME: NULL</div>
 
-    <!-- TAB 0: Games Management -->
+    <!-- TAB 0: Games -->
     <div id="gamesTab" class="tab-content active">
-        <h3>INITIALIZE NEW GAME</h3>
-        <input type="text" id="gameName" placeholder="e.g., JUNIOR LEAGUE 2026">
+        <h3>INITIALIZE BLITZ GAME</h3>
+        <input type="text" id="gameName" placeholder="e.g., BLITZ SENIOR 2026">
         <button class="btn-primary" onclick="createGame()">CREATE</button>
 
         <h3 style="margin-top: 40px;">ACTIVE SYSTEMS</h3>
@@ -92,9 +114,9 @@
         </table>
     </div>
 
-    <!-- TAB 1: Team Management -->
+    <!-- TAB 1: Teams -->
     <div id="teamsTab" class="tab-content">
-        <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: TOURNAMENT IN PROGRESS.</div>
+        <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: MATCHES GENERATED. ROSTER IS LOCKED.</div>
         <div id="teamSetupControls">
             <h3>REGISTER TEAM UNIT</h3>
             <input type="text" id="teamName" placeholder="Enter Team Designation">
@@ -105,28 +127,23 @@
             <thead><tr><th>TEAM DESIGNATION</th><th>ACTION</th></tr></thead>
             <tbody id="teams-list-body"></tbody>
         </table>
-        <button id="doneTeamsBtn" class="btn-primary" onclick="lockTeamsAndProceed()" style="width: 100%; margin-top: 20px;">[ INITIATE TOURNAMENT ]</button>
+        <button id="generateMatchesBtn" class="btn-primary" onclick="generateMatches()" style="width: 100%; margin-top: 20px;">[ GENERATE MATCH SCHEDULE ]</button>
     </div>
 
-    <!-- TAB 2: Rounds Management -->
-    <div id="roundsTab" class="tab-content">
-        <div id="gameLockedMessage" class="lock-msg">
-            SYSTEM LOCKED: TOURNAMENT CONCLUDED. DATA FINALIZED.
-        </div>
-
-        <p id="matchesInfoMsg" style="font-size: 13px; color: #8b949e; margin-top: 0; font-family: 'Rajdhani', sans-serif;">DATA AUTO-SAVES UPON INPUT.</p>
-        
-        <div id="matches-container"></div>
-        
-        <button id="generateRoundBtn" class="btn-primary" onclick="generateNextRound()" style="width: 100%; margin-top: 20px;">GENERATE ROUND 1 (SWISS PROTOCOL)</button>
-        <button id="finishGameBtn" class="btn-red" onclick="finishGame()" style="width: 100%; margin-top: 15px; font-size: 16px; display: none;">TERMINATE GAME (LOCK ALL SCORES)</button>
+    <!-- TAB 2: Matches -->
+    <div id="matchesTab" class="tab-content">
+        <h3>MATCH CONTROLS</h3>
+        <table>
+            <thead><tr><th>MATCH</th><th>MATCHUP</th><th>TIMER</th><th>CONTROLS</th><th>WINNER</th></tr></thead>
+            <tbody id="matches-list-body"></tbody>
+        </table>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
@@ -141,316 +158,279 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Paste your exact Super Admin UID here
+  const SUPER_ADMIN_UID = "PASTE_YOUR_SUPER_ADMIN_UID_HERE";
+
   let currentGameId = null;
-  let currentMaxRound = 0;
-  let isTournamentStarted = false;
+  let currentGameData = null;
   let currentTeamsList = [];
+  let currentMatchesList = [];
   let allGamesData = {}; 
-  let currentGameIsLocked = false;
   
+  let unsubGamesList = null;
+  let unsubGame = null;
   let unsubTeams = null;
   let unsubMatches = null;
+  let matchTimerIntervals = {};
 
   onAuthStateChanged(auth, user => {
-    if (user) document.getElementById("adminBody").style.display = "block";
-    else window.location.href = "login.html";
+    if (user) {
+        document.getElementById("adminBody").style.display = "block";
+        initGamesListListener(user);
+    } else {
+        window.location.href = "login.html";
+    }
   });
+
   window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
 
   window.switchTab = function(tabId, btnElement) {
-    if ((tabId === 'teamsTab' || tabId === 'roundsTab') && !currentGameId) {
-        return alert("PLEASE SELECT A TARGET GAME IN THE SYSTEMS DIRECTORY FIRST.");
-    }
+    if (tabId !== 'gamesTab' && !currentGameId) return alert("PLEASE SELECT A TARGET GAME FIRST.");
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btnElement.classList.add('active');
   };
 
-  // --- GAME MANAGEMENT ---
-  onSnapshot(collection(db, "games"), (snapshot) => {
-      const tbody = document.getElementById("games-list-body");
-      tbody.innerHTML = "";
-      allGamesData = {};
+  function formatTime(ms) {
+      if(ms === null || ms === undefined || ms < 0) return "--:--.--";
+      let date = new Date(ms);
+      let m = String(date.getUTCMinutes()).padStart(2, '0');
+      let s = String(date.getUTCSeconds()).padStart(2, '0');
+      let msStr = String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0');
+      
+      let raw = `${m}:${s}.${msStr}`;
+      let html = '';
+      for(let char of raw) {
+          html += `<span class="digit-slot">${char}</span>`;
+      }
+      return html;
+  }
 
-      snapshot.forEach(docSnap => {
-          const game = docSnap.data();
-          allGamesData[docSnap.id] = game;
+  // --- GAME MANAGEMENT (MULTI-TENANT ISOLATION) ---
+  function initGamesListListener(user) {
+      if(unsubGamesList) unsubGamesList();
+
+      let qGames;
+      if (user.uid === SUPER_ADMIN_UID) {
+          qGames = query(collection(db, "games"));
+      } else {
+          qGames = query(collection(db, "games"), where("createdBy", "==", user.uid));
+      }
+
+      unsubGamesList = onSnapshot(qGames, (snapshot) => {
+          const tbody = document.getElementById("games-list-body");
+          tbody.innerHTML = "";
+          allGamesData = {};
           
-          const lockedBadge = game.isLocked ? `<span style="color:var(--red-gear); font-size:12px; margin-left: 10px;">[LOCKED]</span>` : "";
-          
-          tbody.innerHTML += `
-              <tr>
-                  <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
+          if (snapshot.empty) {
+              tbody.innerHTML = `<tr><td colspan="2" style="color: #6e7681; text-align: center;">NO ACTIVE DIRECTORIES FOUND</td></tr>`;
+              return;
+          }
+
+          snapshot.forEach(docSnap => {
+              const game = docSnap.data();
+              allGamesData[docSnap.id] = game;
+
+              tbody.innerHTML += `<tr>
+                  <td class="team-name" style="font-family: 'Orbitron', sans-serif;">${game.name}</td>
                   <td>
-                      <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
-                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
+                      <button class="btn-primary" style="padding: 5px 10px; font-size:12px;" onclick="selectGame('${docSnap.id}')">SELECT</button>
                       <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
                   </td>
-              </tr>
-          `;
+              </tr>`;
+          });
       });
-
-      if(currentGameId && allGamesData[currentGameId]) {
-          currentGameIsLocked = allGamesData[currentGameId].isLocked || false;
-          applyGameLockUI();
-      }
-  });
+  }
 
   window.createGame = async function() {
       const name = document.getElementById("gameName").value.trim();
       if(!name) return;
-      await addDoc(collection(db, "games"), { name: name, createdAt: new Date(), isLocked: false });
+      await addDoc(collection(db, "games"), { 
+          name: name, 
+          createdAt: new Date(), 
+          createdBy: auth.currentUser.uid, // Owner isolation
+          hasMatches: false
+      });
       document.getElementById("gameName").value = "";
   };
 
   window.deleteGame = async function(id, name) {
-      if(confirm(`WARNING: THIS WILL PURGE THE ENTIRE GAME DIRECTORY "${name}". PROCEED?`)) {
-          if(currentGameId === id) {
-              currentGameId = null;
-              document.getElementById("activeGameDisplay").style.display = "none";
-          }
+      if(confirm(`PURGE DIRECTORY: "${name}"?`)) {
+          if(currentGameId === id) currentGameId = null;
           await deleteDoc(doc(db, "games", id));
       }
   };
 
-  window.restartGame = async function(id, name) {
-      if(!confirm(`⚠️ SYSTEM OVERRIDE: REBOOT "${name}"?\nAll match data will be purged. Team units will remain in the roster.`)) return;
-      await updateDoc(doc(db, "games", id), { isLocked: false });
-      const matchesSnap = await getDocs(collection(db, "games", id, "matches"));
-      const matchPromises = [];
-      matchesSnap.forEach(matchDoc => { matchPromises.push(deleteDoc(doc(db, "games", id, "matches", matchDoc.id))); });
-      await Promise.all(matchPromises);
-      const teamsSnap = await getDocs(collection(db, "games", id, "teams"));
-      const teamPromises = [];
-      teamsSnap.forEach(teamDoc => { teamPromises.push(updateDoc(doc(db, "games", id, "teams", teamDoc.id), { points: 0, balls: 0 })); });
-      await Promise.all(teamPromises);
-      alert(`SYSTEM REBOOTED: "${name}"\nScores zeroed. Roster unlocked.`);
-      selectGame(id);
-  };
-
   window.selectGame = function(id) {
       currentGameId = id;
-      const game = allGamesData[id];
-      currentGameIsLocked = game.isLocked || false;
-      
       document.getElementById("activeGameDisplay").style.display = "block";
-      document.getElementById("activeGameDisplay").innerText = `TARGET GAME: ${game.name}`;
+      document.getElementById("activeGameDisplay").innerText = `TARGET GAME: ${allGamesData[id].name}`;
       
+      if(unsubGame) unsubGame();
       if(unsubTeams) unsubTeams();
       if(unsubMatches) unsubMatches();
+      for(let key in matchTimerIntervals) clearInterval(matchTimerIntervals[key]);
+
+      unsubGame = onSnapshot(doc(db, "games", currentGameId), (docSnap) => {
+          currentGameData = docSnap.data();
+          renderTeamsTab(); 
+      });
 
       unsubTeams = onSnapshot(collection(db, "games", currentGameId, "teams"), (snapshot) => {
           currentTeamsList = [];
           snapshot.forEach(d => currentTeamsList.push({ id: d.id, ...d.data() }));
-          renderTeamsList();
+          currentTeamsList.sort((a,b) => a.name.localeCompare(b.name));
+          renderTeamsTab();
       });
 
-      const qMatches = query(collection(db, "games", currentGameId, "matches"), orderBy("round", "asc"));
-      unsubMatches = onSnapshot(qMatches, (snapshot) => {
-          const container = document.getElementById("matches-container");
-          container.innerHTML = "";
-          let roundsData = {};
-          currentMaxRound = 0;
-
-          if (snapshot.size > 0) {
-              isTournamentStarted = true;
-              document.getElementById("teamSetupControls").style.display = "none";
-              document.getElementById("doneTeamsBtn").style.display = "none";
-              document.getElementById("teamLockMessage").style.display = "block";
-              
-              if(!currentGameIsLocked) document.getElementById("finishGameBtn").style.display = "block";
-          } else {
-              isTournamentStarted = false;
-              document.getElementById("teamSetupControls").style.display = "block";
-              document.getElementById("doneTeamsBtn").style.display = "block";
-              document.getElementById("teamLockMessage").style.display = "none";
-              document.getElementById("finishGameBtn").style.display = "none";
-          }
-          renderTeamsList();
-
-          snapshot.forEach(docSnap => {
-              const match = docSnap.data();
-              match.id = docSnap.id;
-              if(match.round > currentMaxRound) currentMaxRound = match.round;
-              if(!roundsData[match.round]) roundsData[match.round] = [];
-              roundsData[match.round].push(match);
-          });
-
-          document.getElementById("generateRoundBtn").innerText = `EXECUTE ROUND ${currentMaxRound + 1} (SWISS PROTOCOL)`;
-
-          const disabledAttr = currentGameIsLocked ? "disabled" : "";
-
-          for(let r = 1; r <= currentMaxRound; r++) {
-              if(!roundsData[r]) continue;
-              let html = `<h3 class="round-header">ROUND ${r}</h3><table><thead><tr><th>MATCH</th><th>UNIT</th><th>BALLS LEFT</th></tr></thead><tbody>`;
-              roundsData[r].forEach((match, index) => {
-                  const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
-                  const bBalls = match.teamB_balls === null ? "" : match.teamB_balls;
-                  html += `
-                      <tr>
-                          <td rowspan="2" style="font-weight:bold; font-family: 'Orbitron', sans-serif;">#${index+1}</td>
-                          <td class="team-name">${match.teamA_name}</td>
-                          <td><input type="number" min="0" max="10" value="${aBalls}" ${disabledAttr} onchange="updateScore('${match.id}', 'A', this.value)"></td>
-                      </tr>
-                      <tr>
-                          <td class="team-name">${match.teamB_name}</td>
-                          <td><input type="number" min="0" max="10" value="${bBalls}" ${disabledAttr} onchange="updateScore('${match.id}', 'B', this.value)"></td>
-                      </tr>
-                      <tr class="divider-row"><td colspan="3"></td></tr>
-                  `;
-              });
-              html += `</tbody></table>`;
-              container.innerHTML += html;
-          }
-          
-          applyGameLockUI(); 
+      unsubMatches = onSnapshot(collection(db, "games", currentGameId, "matches"), (snapshot) => {
+          currentMatchesList = [];
+          snapshot.forEach(d => currentMatchesList.push({ id: d.id, ...d.data() }));
+          renderMatchesTab();
       });
 
       switchTab('teamsTab', document.getElementById('tabBtn1'));
   };
 
-  function applyGameLockUI() {
-      const generateBtn = document.getElementById("generateRoundBtn");
-      const finishBtn = document.getElementById("finishGameBtn");
-      const lockMsg = document.getElementById("gameLockedMessage");
-      const matchesMsg = document.getElementById("matchesInfoMsg");
-
-      if (currentGameIsLocked) {
-          generateBtn.style.display = "none";
-          finishBtn.style.display = "none";
-          matchesMsg.style.display = "none";
-          lockMsg.style.display = "block";
-      } else {
-          generateBtn.style.display = "block";
-          matchesMsg.style.display = "block";
-          lockMsg.style.display = "none";
-          finishBtn.style.display = isTournamentStarted ? "block" : "none";
-      }
+  // --- TEAMS TAB ---
+  function renderTeamsTab() {
+      const hasMatches = currentGameData && currentGameData.hasMatches;
       
-      document.querySelectorAll("#matches-container input").forEach(input => { input.disabled = currentGameIsLocked; });
-  }
+      if (hasMatches) {
+          document.getElementById("teamSetupControls").style.display = "none";
+          document.getElementById("generateMatchesBtn").style.display = "none";
+          document.getElementById("teamLockMessage").style.display = "block";
+      } else {
+          document.getElementById("teamSetupControls").style.display = "block";
+          document.getElementById("generateMatchesBtn").style.display = "block";
+          document.getElementById("teamLockMessage").style.display = "none";
+      }
 
-  window.finishGame = async function() {
-      if(!confirm("SYSTEM PROMPT: TERMINATE GAME?\nThis action finalizes the data and locks all inputs.")) return;
-      await updateDoc(doc(db, "games", currentGameId), { isLocked: true });
-      alert("GAME TERMINATED. DATA LOCKED.");
-  };
-
-  // --- TEAM MANAGEMENT ---
-  window.lockTeamsAndProceed = function() {
-      if(currentTeamsList.length < 2) return alert("MINIMUM 2 UNITS REQUIRED FOR SIMULATION.");
-      switchTab('roundsTab', document.getElementById('tabBtn2'));
-  };
-
-  function renderTeamsList() {
       document.getElementById("teamCount").innerText = currentTeamsList.length;
       const tbody = document.getElementById("teams-list-body");
       tbody.innerHTML = "";
+      
       currentTeamsList.forEach(team => {
-          const actionHtml = isTournamentStarted 
+          const actionHtml = hasMatches 
               ? `<span style="color: #6e7681; font-style: italic;">LOCKED</span>` 
-              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">DEL</button>`;
-          tbody.innerHTML += `<tr><td style="text-align: left; padding-left: 15px; font-weight: bold; color:white;">${team.name}</td><td>${actionHtml}</td></tr>`;
+              : `<button class="btn-red" onclick="deleteTeam('${team.id}')">DEL</button>`;
+          
+          tbody.innerHTML += `<tr><td class="team-name">${team.name}</td>
+          <td>${actionHtml}</td></tr>`;
       });
   }
 
   window.addTeam = async function() {
       const name = document.getElementById("teamName").value.trim();
       if(!name || !currentGameId) return;
-      await addDoc(collection(db, "games", currentGameId, "teams"), { name: name, points: 0, balls: 0 });
+      
+      await addDoc(collection(db, "games", currentGameId, "teams"), { 
+          name: name, 
+          createdBy: auth.currentUser.uid, 
+          wins: 0, 
+          totalTimeMs: 0 
+      });
       document.getElementById("teamName").value = ""; 
   };
 
-  window.deleteTeam = async function(id, name) {
-      if(confirm(`DELETE UNIT: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
+  window.deleteTeam = async function(id) {
+      if(confirm(`DELETE UNIT?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
   };
 
-  // --- ROUNDS & SCORING ---
-  window.updateScore = async function(matchId, teamSide, value) {
-      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
-      const updateData = {};
-      const numValue = value === "" ? null : parseInt(value);
-      if (teamSide === 'A') updateData.teamA_balls = numValue;
-      if (teamSide === 'B') updateData.teamB_balls = numValue;
-      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), updateData);
-      recalculateStandings();
+  window.generateMatches = async function() {
+      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR ROUND ROBIN.");
+      if(!confirm("Generate round-robin match schedule? Team roster will lock.")) return;
+
+      let matchNum = 1;
+      for (let i = 0; i < currentTeamsList.length; i++) {
+          for (let j = i + 1; j < currentTeamsList.length; j++) {
+              await addDoc(collection(db, "games", currentGameId, "matches"), {
+                  matchNumber: matchNum++,
+                  createdBy: auth.currentUser.uid,
+                  teamAId: currentTeamsList[i].id,
+                  teamAName: currentTeamsList[i].name,
+                  teamBId: currentTeamsList[j].id,
+                  teamBName: currentTeamsList[j].name,
+                  startTimestamp: null,
+                  durationMs: null,
+                  winnerId: null
+              });
+          }
+      }
+
+      await updateDoc(doc(db, "games", currentGameId), { hasMatches: true });
+      switchTab('matchesTab', document.getElementById('tabBtn2'));
   };
 
-  // SWISS PAIRING GENERATOR
-  window.generateNextRound = async function() {
-      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
-      
-      const targetRound = currentMaxRound + 1;
-      if(!confirm(`EXECUTE ROUND ${targetRound}?`)) return;
+  // --- MATCHES TAB ---
+  function renderMatchesTab() {
+      const tbody = document.getElementById("matches-list-body");
+      tbody.innerHTML = "";
 
-      const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
-      let playedHistory = {}; 
-      
-      matchesSnap.forEach(docSnap => {
-          const m = docSnap.data();
-          if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
-          if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
-          playedHistory[m.teamA_id].add(m.teamB_id);
-          playedHistory[m.teamB_id].add(m.teamA_id);
+      currentMatchesList.sort((a,b) => a.matchNumber - b.matchNumber);
+
+      currentMatchesList.forEach(match => {
+          let timerColor = "white";
+          let timeDisplay = formatTime(0);
+          let controls = "";
+          let winnerDisplay = match.winnerId ? (match.winnerId === match.teamAId ? match.teamAName : match.teamBName) : "--";
+
+          if(match.winnerId) {
+              timeDisplay = formatTime(match.durationMs);
+              timerColor = "var(--purple-accent)";
+              controls = `<button class="btn-manage" onclick="resetMatch('${match.id}')">↺ REDO</button>`;
+              clearInterval(matchTimerIntervals[match.id]);
+          } else if (match.startTimestamp) {
+              timerColor = "var(--neon-green)";
+              controls = `
+                  <button class="btn-green" onclick="stopMatch('${match.id}', '${match.teamAId}')">${match.teamAName} WIN</button>
+                  <button class="btn-blue" onclick="stopMatch('${match.id}', '${match.teamBId}')">${match.teamBName} WIN</button>
+              `;
+              if(!matchTimerIntervals[match.id]) {
+                  matchTimerIntervals[match.id] = setInterval(() => {
+                      const el = document.getElementById(`matchTime_${match.id}`);
+                      if(el) el.innerHTML = formatTime(Date.now() - match.startTimestamp);
+                  }, 50);
+              }
+          } else {
+              controls = `<button class="btn-primary" onclick="startMatch('${match.id}')">▶ START</button>`;
+          }
+
+          tbody.innerHTML += `<tr>
+              <td>M${match.matchNumber}</td>
+              <td class="team-name" style="text-align:center;">${match.teamAName} vs ${match.teamBName}</td>
+              <td class="timer-display" id="matchTime_${match.id}" style="color:${timerColor}">${timeDisplay}</td>
+              <td>${controls}</td>
+              <td style="font-weight:bold; color:var(--purple-accent);">${winnerDisplay}</td>
+          </tr>`;
       });
-
-      let teams = [...currentTeamsList];
-      if(targetRound === 1) { teams = teams.sort(() => Math.random() - 0.5); } 
-      else { teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); }
-
-      let pairings = [];
-      let unpaired = [...teams];
-
-      while(unpaired.length > 1) {
-          let teamA = unpaired.shift(); 
-          let matchedIndex = -1;
-          for(let i = 0; i < unpaired.length; i++) {
-              let potentialOpponent = unpaired[i];
-              let historyA = playedHistory[teamA.id] || new Set();
-              if(!historyA.has(potentialOpponent.id)) { matchedIndex = i; break; }
-          }
-          if(matchedIndex === -1) {
-              matchedIndex = 0;
-              console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
-          }
-          let teamB = unpaired.splice(matchedIndex, 1)[0]; 
-          pairings.push({ teamA, teamB });
-      }
-
-      let byeTeam = unpaired.length === 1 ? unpaired[0] : null;
-
-      for(let pair of pairings) {
-          await addDoc(collection(db, "games", currentGameId, "matches"), {
-              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
-              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
-          });
-      }
-      if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);
-  };
-
-  async function recalculateStandings() {
-      let teamStats = {};
-      currentTeamsList.forEach(t => teamStats[t.id] = { points: 0, balls: 0 });
-
-      const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
-      matchesSnap.forEach(docSnap => {
-          const match = docSnap.data();
-          if(match.teamA_balls !== null && match.teamB_balls !== null) {
-              let aPts = 0, bPts = 0;
-              if(match.teamA_balls < match.teamB_balls) { aPts = 2; bPts = 0; }
-              else if(match.teamB_balls < match.teamA_balls) { aPts = 0; bPts = 2; }
-              else { aPts = 1; bPts = 1; }
-
-              if(teamStats[match.teamA_id]) { teamStats[match.teamA_id].points += aPts; teamStats[match.teamA_id].balls += match.teamA_balls; }
-              if(teamStats[match.teamB_id]) { teamStats[match.teamB_id].points += bPts; teamStats[match.teamB_id].balls += match.teamB_balls; }
-          }
-      });
-
-      for (let teamId in teamStats) {
-          await updateDoc(doc(db, "games", currentGameId, "teams", teamId), { points: teamStats[teamId].points, balls: teamStats[teamId].balls });
-      }
   }
+
+  window.startMatch = async function(matchId) {
+      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { startTimestamp: Date.now() });
+  };
+
+  window.stopMatch = async function(matchId, winnerId) {
+      const match = currentMatchesList.find(m => m.id === matchId);
+      if(!match || !match.startTimestamp) return;
+
+      const elapsed = Date.now() - match.startTimestamp;
+      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { 
+          durationMs: elapsed, 
+          winnerId: winnerId,
+          startTimestamp: null 
+      });
+  };
+
+  window.resetMatch = async function(matchId) {
+      if(!confirm("Reset match results?")) return;
+      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { 
+          durationMs: null, 
+          winnerId: null,
+          startTimestamp: null 
+      });
+  };
 </script>
 </body>
 </html>

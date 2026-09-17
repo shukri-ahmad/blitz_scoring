@@ -79,7 +79,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
     authDomain: "makerobot-blitz-1ec81.firebaseapp.com",
@@ -89,7 +88,6 @@
     appId: "1:122915710835:web:8f494062147f804e53c706"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
@@ -100,7 +98,7 @@
 
       signInWithEmailAndPassword(auth, email, pass)
           .then((userCredential) => {
-              window.location.href = "admin_blitz.html";
+              window.location.href = "admin.html";
           })
           .catch((error) => {
               errorMsg.style.display = "block";

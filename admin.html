@@ -289,8 +289,8 @@
                   let aStatus = "";
                   let bStatus = "";
                   
-                  // If round is locked and scores are not empty, calculate who won
-                  if (isRoundLocked && aBalls !== "" && bBalls !== "") {
+                  // Instantly calculate and show winner when both inputs have numbers
+                  if (aBalls !== "" && bBalls !== "") {
                       if (aBalls < bBalls) {
                           aStatus = `<span style="color: var(--neon-green); font-size: 14px; margin-left: 10px; font-weight: 900;">[WIN]</span>`;
                           bStatus = `<span style="color: var(--red-gear); font-size: 14px; margin-left: 10px; font-weight: 900;">[LOSS]</span>`;

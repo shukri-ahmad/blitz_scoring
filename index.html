@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAKEROBOT BLITZ - Live Standings</title>
-    <!-- Futuristic Fonts -->
+    <title>MAKEROBOT BLITZ - Live Swiss Standings</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --red-gear: #e72429;
             --blue-gear: #1f4179;
-            --blitz-grad: linear-gradient(90deg, #1f4179 0%, #9e58cc 100%);
+            --purple-grad: linear-gradient(90deg, #3d1259 0%, #7b2cbf 100%);
+            --purple-accent: #9d4edd;
             --bg-dark: #090c10;
             --panel-bg: #111822;
             --border-glow: #1f4179;
@@ -19,48 +19,47 @@
         }
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%); }
-        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); margin-bottom: 30px; }
+        .container { max-width: 1000px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); margin-bottom: 30px; }
         
-        h1, h2 { font-family: 'Orbitron', sans-serif; text-align: center; color: white; letter-spacing: 1px; text-transform: uppercase; }
-        .logo-container { text-align: center; margin-bottom: 10px; }
-        .logo-container img { max-width: 280px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-align: center; color: white; letter-spacing: 1px; text-transform: uppercase; margin-top: 0;}
         
         .header-links { text-align: right; margin-bottom: 10px; }
-        .header-links a { color: #9e58cc; text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 14px; text-transform: uppercase; transition: color 0.3s;}
+        .header-links a { color: var(--purple-accent); text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 14px; text-transform: uppercase; transition: color 0.3s;}
         .header-links a:hover { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
         
         .game-selector { text-align: center; margin-bottom: 25px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid #30363d; }
-        .game-selector select { padding: 10px; font-size: 16px; border-radius: 4px; font-weight: bold; width: 70%; background: #0d1117; color: white; border: 1px solid var(--border-glow); font-family: 'Rajdhani', sans-serif; }
+        .game-selector select { padding: 10px; font-size: 16px; border-radius: 4px; font-weight: bold; width: 50%; background: #0d1117; color: white; border: 1px solid var(--border-glow); font-family: 'Rajdhani', sans-serif; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #30363d; }
-        th { background: var(--blitz-grad); color: white; font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 1px; }
+        th, td { padding: 15px 12px; text-align: center; border-bottom: 1px solid #30363d; vertical-align: middle;}
+        th { background: var(--purple-grad); color: white; font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 1px; }
         
-        /* Rank 1 Styling */
-        .rank-1 { background: rgba(158, 88, 204, 0.15) !important; }
-        .rank-1 td { color: #fff; font-weight: bold; text-shadow: 0 0 5px #9e58cc; }
+        .rank-1 { background: rgba(157, 78, 221, 0.15) !important; }
+        .rank-1 td { color: #fff; font-weight: bold; text-shadow: 0 0 5px var(--purple-accent); }
         
-        .round-header { background: var(--blue-gear); padding: 12px; margin-top: 30px; border-radius: 4px; border-left: 5px solid var(--red-gear); font-size: 20px; font-weight: bold; color: white; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;}
-        .match-table td { padding: 12px 10px; }
-        .divider-row td { background-color: var(--blue-gear); height: 2px; padding: 0; border: none; opacity: 0.5; }
-        .team-name { font-weight: bold; text-align: left; padding-left: 20px; font-size: 1.1em; color: white;}
-        
-        .score-box { font-size: 1.3em; font-weight: bold; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; display: inline-block; width: 45px; padding: 5px; color: white; font-family: 'Orbitron', sans-serif;}
-        .winner-score { border-color: var(--neon-green); box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
-        .result-text { font-weight: bold; font-size: 1.1em; font-family: 'Orbitron', sans-serif; letter-spacing: 1px;}
-        .res-win { color: var(--neon-green); text-shadow: 0 0 5px rgba(0, 255, 136, 0.5); }
-        .res-loss { color: var(--red-gear); }
-        .res-draw { color: #f39c12; }
-        .res-pending { color: #6e7681; font-style: italic; font-size: 0.9em; }
+        .team-name { font-weight: bold; text-align: left; padding-left: 20px; font-size: 1.2em; color: white;}
+        .time-font { 
+            font-family: 'Orbitron', monospace; 
+            font-weight: 700; 
+            font-size: 1.1em;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .digit-slot { display: inline-block; width: 0.75em; text-align: center; }
+        .win-box { font-size: 1.2em; font-weight: bold; color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.4); }
+        .formula-text { text-align: center; font-size: 14px; color: #8b949e; margin-top: -10px; margin-bottom: 20px; font-weight: bold;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-links"><a href="login.html">[ ADMIN ACCESS ]</a></div>
+    <div class="header-links"><a href="admin_blitz.html">[ ADMIN TERMINAL ]</a></div>
     
-    <div class="logo-container">
-        <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Makerobot Blitz Logo">
+    <div style="text-align: center; margin-bottom: 10px;">
+        <h2 style="font-size: 32px; color: var(--purple-accent);">MAKEROBOT BLITZ</h2>
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #8b949e; letter-spacing: 2px;">LIVE SWISS STANDINGS</div>
     </div>
     
     <div class="game-selector">
@@ -68,24 +67,25 @@
         <select id="publicGameSelect" onchange="loadSelectedGame()"><option>INITIALIZING...</option></select>
     </div>
 
-    <h2>🏆 OVERALL STANDINGS</h2>
-    <p style="text-align: center; font-size: 14px; color: #8b949e; margin-top: -10px;">SORTED BY: POINTS > LOWEST BALLS</p>
+    <p class="formula-text">RANKED BY: WINS ➔ BUCHHOLZ SCORE (STRENGTH OF SCHEDULE) ➔ TOTAL MATCH TIME</p>
+    
     <table>
-        <thead><tr><th>RANK</th><th>TEAM NAME</th><th>POINTS</th><th>TOTAL BALLS</th></tr></thead>
-        <tbody id="leaderboard-body"><tr><td colspan="4">AWAITING DATA...</td></tr></tbody>
+        <thead>
+            <tr>
+                <th>RANK</th>
+                <th>TEAM UNIT</th>
+                <th>WINS</th>
+                <th>BUCHHOLZ SCORE</th>
+                <th>TOTAL TIME</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body"><tr><td colspan="5">AWAITING DATA...</td></tr></tbody>
     </table>
-</div>
-
-<div class="container">
-    <h2>⚔️ MATCH DATA</h2>
-    <div id="matches-container">
-        <p style="text-align: center; color: #8b949e;">NO MATCHES DETECTED.</p>
-    </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
@@ -100,22 +100,31 @@
   const db = getFirestore(app);
 
   let unsubTeams = null;
-  let unsubMatches = null;
+
+  function formatTime(ms) {
+      if(ms === null || ms === undefined || ms <= 0) return "00:00.00";
+      let date = new Date(ms);
+      let m = String(date.getUTCMinutes()).padStart(2, '0');
+      let s = String(date.getUTCSeconds()).padStart(2, '0');
+      let msStr = String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0');
+      
+      let raw = `${m}:${s}.${msStr}`;
+      let html = '';
+      for(let char of raw) {
+          html += `<span class="digit-slot">${char}</span>`;
+      }
+      return html;
+  }
 
   async function loadGamesList() {
       const selectElement = document.getElementById("publicGameSelect");
       const gamesSnap = await getDocs(collection(db, "games"));
-      
       selectElement.innerHTML = "";
-      if(gamesSnap.empty) {
-          selectElement.innerHTML = "<option>NO GAMES FOUND</option>";
-          return;
-      }
+      if(gamesSnap.empty) return selectElement.innerHTML = "<option>NO GAMES FOUND</option>";
 
-      gamesSnap.forEach(doc => {
-          selectElement.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+      gamesSnap.forEach(documentDoc => { 
+          selectElement.innerHTML += `<option value="${documentDoc.id}">${documentDoc.data().name}</option>`; 
       });
-
       loadSelectedGame();
   }
   loadGamesList();
@@ -125,71 +134,51 @@
       if(!gameId || gameId === "NO GAMES FOUND") return;
 
       if(unsubTeams) unsubTeams();
-      if(unsubMatches) unsubMatches();
 
       unsubTeams = onSnapshot(collection(db, "games", gameId, "teams"), (snapshot) => {
         let teams = [];
-        snapshot.forEach(doc => teams.push({ id: doc.id, ...doc.data() }));
-        teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls);
+        let teamsMap = {};
+
+        snapshot.forEach(documentDoc => {
+            let teamData = { id: documentDoc.id, ...documentDoc.data() };
+            teams.push(teamData);
+            teamsMap[teamData.id] = teamData;
+        });
+
+        // Compute Buchholz Score (Sum of defeated opponents' total wins)
+        teams.forEach(team => {
+            let buchholz = 0;
+            let opponents = team.pastOpponents || [];
+            opponents.forEach(oppId => {
+                if(teamsMap[oppId]) buchholz += (teamsMap[oppId].wins || 0);
+            });
+            team.buchholzScore = buchholz;
+        });
+
+        // Swiss Ranking Sort Algorithm
+        teams.sort((a, b) => {
+            // 1. Most Wins
+            if ((b.wins || 0) !== (a.wins || 0)) return (b.wins || 0) - (a.wins || 0);
+            // 2. Highest Buchholz Score (Strength of Schedule)
+            if (b.buchholzScore !== a.buchholzScore) return b.buchholzScore - a.buchholzScore;
+            // 3. Lowest Total Match Duration
+            return (a.totalTimeMs || 0) - (b.totalTimeMs || 0);
+        });
         
         const tbody = document.getElementById("leaderboard-body");
         tbody.innerHTML = ""; 
-        if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='4'>NO TEAMS REGISTERED.</td></tr>";
+        if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='5'>NO TEAMS REGISTERED.</td></tr>";
 
         teams.forEach((team, index) => {
           tbody.innerHTML += `
-            <tr class="${index === 0 ? 'rank-1' : ''}">
-              <td style="font-family: 'Orbitron', sans-serif;">${index + 1}</td>
+            <tr class="${index === 0 && (team.wins > 0 || team.totalTimeMs > 0) ? 'rank-1' : ''}">
+              <td class="time-font" style="font-size: 1.2em;">${index + 1}</td>
               <td class="team-name">${team.name}</td>
-              <td style="font-size: 1.3em; font-weight: bold; color: white;">${team.points}</td>
-              <td style="font-family: 'Orbitron', sans-serif;">${team.balls}</td>
+              <td class="win-box">${team.wins || 0}</td>
+              <td class="time-font" style="color:var(--purple-accent);">${team.buchholzScore || 0} PTS</td>
+              <td class="time-font">${formatTime(team.totalTimeMs)}</td>
             </tr>`;
         });
-      });
-
-      const qMatches = query(collection(db, "games", gameId, "matches"), orderBy("round", "asc"));
-      unsubMatches = onSnapshot(qMatches, (snapshot) => {
-        const container = document.getElementById("matches-container");
-        container.innerHTML = "";
-        if(snapshot.empty) return container.innerHTML = "<p style='text-align:center; color: #8b949e;'>AWAITING MATCH GENERATION...</p>";
-        
-        let roundsData = {};
-        let maxRound = 0;
-
-        snapshot.forEach((docSnap) => {
-            const match = docSnap.data();
-            if(match.round > maxRound) maxRound = match.round;
-            if(!roundsData[match.round]) roundsData[match.round] = [];
-            roundsData[match.round].push(match);
-        });
-
-        for(let r = 1; r <= maxRound; r++) {
-            if(!roundsData[r]) continue;
-            let html = `<div class="round-header">ROUND ${r}</div><table class="match-table"><thead><tr><th>MATCH</th><th>TEAM</th><th>SCORE</th><th>RESULT</th></tr></thead><tbody>`;
-            
-            roundsData[r].forEach((match, index) => {
-                const aBalls = match.teamA_balls === null ? "-" : match.teamA_balls;
-                const bBalls = match.teamB_balls === null ? "-" : match.teamB_balls;
-                
-                let aClass = "score-box", bClass = "score-box";
-                let aResult = "<span class='res-pending'>PENDING</span>", bResult = "<span class='res-pending'>PENDING</span>";
-                
-                if(aBalls !== "-" && bBalls !== "-") {
-                    if(aBalls < bBalls) { aClass += " winner-score"; aResult = "<span class='result-text res-win'>WIN</span>"; bResult = "<span class='result-text res-loss'>LOSS</span>"; } 
-                    else if(bBalls < aBalls) { bClass += " winner-score"; bResult = "<span class='result-text res-win'>WIN</span>"; aResult = "<span class='result-text res-loss'>LOSS</span>"; } 
-                    else { aResult = "<span class='result-text res-draw'>DRAW</span>"; bResult = "<span class='result-text res-draw'>DRAW</span>"; }
-                }
-
-                html += `
-                    <tr><td rowspan="2" style="font-weight:bold; font-size: 1.1em; font-family: 'Orbitron', sans-serif;">#${index+1}</td>
-                        <td class="team-name">${match.teamA_name}</td><td><span class="${aClass}">${aBalls}</span></td><td>${aResult}</td></tr>
-                    <tr><td class="team-name">${match.teamB_name}</td><td><span class="${bClass}">${bBalls}</span></td><td>${bResult}</td></tr>
-                    <tr class="divider-row"><td colspan="4"></td></tr>
-                `;
-            });
-            html += `</tbody></table>`;
-            container.innerHTML += html;
-        }
       });
   };
 </script>

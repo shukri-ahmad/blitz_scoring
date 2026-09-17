@@ -41,10 +41,11 @@
         .win-box { font-size: 1.2em; font-weight: bold; color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.4); }
         .formula-text { text-align: center; font-size: 14px; color: #8b949e; margin-top: -10px; margin-bottom: 20px; font-weight: bold;}
         
-        /* Styles for the Match History section */
         .history-section-title { margin-top: 50px; margin-bottom: 10px; text-align: left; color: var(--neon-green); border-bottom: 1px solid #30363d; padding-bottom: 10px; font-size: 20px;}
         .public-round-header { background: var(--blue-gear); padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid var(--purple-accent); color: white; font-family: 'Orbitron', sans-serif; font-weight: bold; text-align: left;}
         .match-divider td { background-color: #30363d; height: 1px; padding: 0; border: none; opacity: 0.5; }
+        
+        .tie-badge { color: var(--red-gear); font-size: 11px; display: block; font-weight: bold; margin-top: 5px;}
     </style>
 </head>
 <body>
@@ -77,7 +78,6 @@
         <tbody id="leaderboard-body"><tr><td colspan="4">AWAITING DATA...</td></tr></tbody>
     </table>
 
-    <!-- Match History Section -->
     <h3 class="history-section-title">TOURNAMENT MATCH HISTORY</h3>
     <div id="matches-history-container">
         <p style="text-align: center; color: #8b949e;">Awaiting match data...</p>
@@ -123,7 +123,6 @@
       if(unsubTeams) unsubTeams();
       if(unsubMatches) unsubMatches();
 
-      // Load and update the Leaderboard
       unsubTeams = onSnapshot(collection(db, "games", gameId, "teams"), (snapshot) => {
         let teams = [];
 
@@ -131,9 +130,24 @@
             teams.push({ id: documentDoc.id, ...documentDoc.data() });
         });
 
+        // Sort Data
         teams.sort((a, b) => {
             if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
             return (a.balls || 0) - (b.balls || 0); 
+        });
+
+        // Compute TRUE RANK and check for TIES
+        let currentRank = 1;
+        teams.forEach((t, i) => {
+            if (i > 0) {
+                let prev = teams[i-1];
+                if (prev.points !== t.points || prev.balls !== t.balls) currentRank = i + 1;
+            }
+            t.rank = currentRank;
+            
+            let tiedWithPrev = (i > 0 && teams[i-1].points === t.points && teams[i-1].balls === t.balls);
+            let tiedWithNext = (i < teams.length - 1 && teams[i+1].points === t.points && teams[i+1].balls === t.balls);
+            t.isTied = tiedWithPrev || tiedWithNext;
         });
         
         const tbody = document.getElementById("leaderboard-body");
@@ -141,9 +155,11 @@
         if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='4'>NO TEAMS REGISTERED.</td></tr>";
 
         teams.forEach((team, index) => {
+          let tieHTML = team.isTied ? `<span class="tie-badge">[TIE]</span>` : '';
+            
           tbody.innerHTML += `
             <tr class="${index === 0 && (team.points > 0 || team.balls > 0) ? 'rank-1' : ''}">
-              <td style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.2em;">${index + 1}</td>
+              <td style="font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.2em;">${team.rank} ${tieHTML}</td>
               <td class="team-name">${team.name}</td>
               <td class="win-box">${team.points || 0}</td>
               <td style="font-family: 'Orbitron', sans-serif; font-weight: bold;">${team.balls || 0}</td>
@@ -151,7 +167,6 @@
         });
       });
 
-      // Load and update the Match History
       const qMatches = query(collection(db, "games", gameId, "matches"), orderBy("round", "asc"));
       unsubMatches = onSnapshot(qMatches, (snapshot) => {
           const container = document.getElementById("matches-history-container");

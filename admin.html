@@ -121,7 +121,6 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
     authDomain: "makerobot-blitz-1ec81.firebaseapp.com",
@@ -131,7 +130,6 @@
     appId: "1:122915710835:web:8f494062147f804e53c706"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);

@@ -14,6 +14,7 @@
             --panel-bg: #111822;
             --border-glow: #1f4179;
             --text-main: #c9d1d9;
+            --neon-green: #00ff88;
         }
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 20px; display: none; background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%);}
@@ -275,23 +276,41 @@
           for(let r = 1; r <= currentMaxRound; r++) {
               if(!roundsData[r]) continue;
               
-              // NEW LOGIC: Lock this round if the whole game is locked OR if a newer round exists
               const isRoundLocked = currentGameIsLocked || (r < currentMaxRound);
               const disabledAttr = isRoundLocked ? "disabled" : "";
               const lockedBadgeHTML = isRoundLocked ? `<span class="round-locked-badge">[DATA LOCKED]</span>` : ``;
 
               let html = `<h3 class="round-header"><span>ROUND ${r}</span> ${lockedBadgeHTML}</h3><table><thead><tr><th>MATCH</th><th>UNIT</th><th>BALLS LEFT</th></tr></thead><tbody>`;
+              
               roundsData[r].forEach((match, index) => {
                   const aBalls = match.teamA_balls === null ? "" : match.teamA_balls;
                   const bBalls = match.teamB_balls === null ? "" : match.teamB_balls;
+                  
+                  let aStatus = "";
+                  let bStatus = "";
+                  
+                  // If round is locked and scores are not empty, calculate who won
+                  if (isRoundLocked && aBalls !== "" && bBalls !== "") {
+                      if (aBalls < bBalls) {
+                          aStatus = `<span style="color: var(--neon-green); font-size: 14px; margin-left: 10px; font-weight: 900;">[WIN]</span>`;
+                          bStatus = `<span style="color: var(--red-gear); font-size: 14px; margin-left: 10px; font-weight: 900;">[LOSS]</span>`;
+                      } else if (bBalls < aBalls) {
+                          bStatus = `<span style="color: var(--neon-green); font-size: 14px; margin-left: 10px; font-weight: 900;">[WIN]</span>`;
+                          aStatus = `<span style="color: var(--red-gear); font-size: 14px; margin-left: 10px; font-weight: 900;">[LOSS]</span>`;
+                      } else {
+                          aStatus = `<span style="color: #f39c12; font-size: 14px; margin-left: 10px; font-weight: 900;">[DRAW]</span>`;
+                          bStatus = `<span style="color: #f39c12; font-size: 14px; margin-left: 10px; font-weight: 900;">[DRAW]</span>`;
+                      }
+                  }
+
                   html += `
                       <tr>
                           <td rowspan="2" style="font-weight:bold; font-family: 'Orbitron', sans-serif;">#${index+1}</td>
-                          <td class="team-name">${match.teamA_name}</td>
+                          <td class="team-name">${match.teamA_name} ${aStatus}</td>
                           <td><input type="number" min="0" max="10" value="${aBalls}" ${disabledAttr} onchange="updateScore('${match.id}', 'A', this.value)"></td>
                       </tr>
                       <tr>
-                          <td class="team-name">${match.teamB_name}</td>
+                          <td class="team-name">${match.teamB_name} ${bStatus}</td>
                           <td><input type="number" min="0" max="10" value="${bBalls}" ${disabledAttr} onchange="updateScore('${match.id}', 'B', this.value)"></td>
                       </tr>
                       <tr class="divider-row"><td colspan="3"></td></tr>
@@ -324,8 +343,6 @@
           lockMsg.style.display = "none";
           finishBtn.style.display = isTournamentStarted ? "block" : "none";
       }
-      // Note: We removed the logic that globally disabled all inputs here, 
-      // because disabling is now handled round-by-round in the render loop!
   }
 
   window.finishGame = async function() {

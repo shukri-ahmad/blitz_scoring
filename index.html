@@ -45,7 +45,7 @@
 <body>
 
 <div class="container">
-    <div class="header-links"><a href="admin_blitz.html">[ ADMIN TERMINAL ]</a></div>
+    <div class="header-links"><a href="admin.html">[ ADMIN TERMINAL ]</a></div>
     
     <div style="text-align: center; margin-bottom: 10px;">
         <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Logo" style="max-width: 250px;">
@@ -78,7 +78,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
     authDomain: "makerobot-blitz-1ec81.firebaseapp.com",
@@ -88,7 +87,6 @@
     appId: "1:122915710835:web:8f494062147f804e53c706"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 

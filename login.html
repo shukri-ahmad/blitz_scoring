@@ -62,10 +62,6 @@
         }
         button:hover { filter: brightness(1.2); }
         .error { color: #ff7b72; margin-top: 15px; font-weight: bold; font-size: 14px; display: none; }
-        .system-select { margin-top: 25px; text-align: left; }
-        .system-select select {
-            width: 100%; padding: 10px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 4px;
-        }
     </style>
 </head>
 <body>
@@ -75,16 +71,7 @@
     <input type="email" id="email" placeholder="Admin Email" required>
     <input type="password" id="password" placeholder="Password" required>
     
-    <div class="system-select">
-        <label style="font-family: 'Orbitron'; font-size: 12px; color: #8b949e;">TARGET SYSTEM:</label>
-        <select id="redirectTarget">
-            <option value="admin_blitz.html">MAKEROBOT BLITZ</option>
-            <option value="admin.html">MAKEROBOT TRACER (STANDARD)</option>
-            <option value="admin_semi_auto.html">MAKEROBOT TRACER (SEMI AUTO)</option>
-        </select>
-    </div>
-
-    <button onclick="login()" style="margin-top: 25px;">AUTHORIZE</button>
+    <button onclick="login()" style="margin-top: 15px;">AUTHORIZE</button>
     <div id="errorMsg" class="error">ACCESS DENIED: Invalid Credentials</div>
 </div>
 
@@ -92,37 +79,35 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+  // Your web app's Firebase configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
-    authDomain: "makerobot-blitz.firebaseapp.com",
-    projectId: "makerobot-blitz",
-    storageBucket: "makerobot-blitz.firebasestorage.app",
-    messagingSenderId: "343992286368",
-    appId: "1:343992286368:web:e5f99c7df490c1d6369dc5"
+    apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
+    authDomain: "makerobot-blitz-1ec81.firebaseapp.com",
+    projectId: "makerobot-blitz-1ec81",
+    storageBucket: "makerobot-blitz-1ec81.firebasestorage.app",
+    messagingSenderId: "122915710835",
+    appId: "1:122915710835:web:8f494062147f804e53c706"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
   window.login = function() {
       const email = document.getElementById("email").value;
       const pass = document.getElementById("password").value;
-      const targetPage = document.getElementById("redirectTarget").value;
       const errorMsg = document.getElementById("errorMsg");
 
       signInWithEmailAndPassword(auth, email, pass)
           .then((userCredential) => {
-              // Login successful, redirect to chosen admin panel
-              window.location.href = targetPage;
+              window.location.href = "admin_blitz.html";
           })
           .catch((error) => {
               errorMsg.style.display = "block";
               errorMsg.innerText = "ACCESS DENIED: " + error.message;
-              console.error("Login Error:", error.code, error.message);
           });
   };
 
-  // Allow pressing "Enter" to login
   document.getElementById("password").addEventListener("keypress", function(event) {
       if (event.key === "Enter") {
           event.preventDefault();

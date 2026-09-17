@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Makerobot Blitz</title>
+    <title>Admin Terminal - Makerobot Blitz (Swiss System)</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -19,7 +19,7 @@
         }
 
         body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); padding: 20px; display: none; background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%);}
-        .container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); }
+        .container { max-width: 950px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); }
         
         .header-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 15px;}
         .header-panel img { max-width: 120px; }
@@ -55,6 +55,7 @@
         th { background: #0d1117; color: #8b949e; font-family: 'Orbitron', sans-serif; font-size: 14px;}
         .team-name { font-weight: bold; text-align: left; padding-left: 15px; color: white; font-size: 1.2em;}
         
+        /* Digit Slot Containers */
         .timer-display { 
             font-family: 'Orbitron', monospace; 
             font-size: 1.2em; 
@@ -69,14 +70,11 @@
             white-space: nowrap;
         }
 
-        .digit-slot {
-            display: inline-block;
-            width: 0.75em;
-            text-align: center;
-        }
-
+        .digit-slot { display: inline-block; width: 0.75em; text-align: center; }
+        
         .active-game-label { background: rgba(31, 65, 121, 0.2); padding: 12px; border-radius: 4px; color: #79c0ff; font-weight: bold; margin-bottom: 20px; border: 1px solid var(--blue-gear); display: none; font-family: 'Orbitron', sans-serif;}
         .lock-msg { display: none; background: rgba(231, 36, 41, 0.1); padding: 15px; border-left: 4px solid var(--red-gear); margin-bottom: 15px; font-weight: bold; color: #ff7b72; font-family: 'Orbitron', sans-serif;}
+        .round-badge { background: var(--purple-accent); color: white; padding: 4px 10px; border-radius: 4px; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body id="adminBody">
@@ -85,7 +83,7 @@
     <div class="header-panel">
         <div>
             <div style="font-family: 'Orbitron', sans-serif; color: var(--purple-accent); font-size: 20px; font-weight: 900; letter-spacing: 2px;">MAKEROBOT BLITZ</div>
-            <div style="font-family: 'Orbitron', sans-serif; color: #8b949e; font-size: 12px; margin-top: 2px;">ADMIN CONTROL TERMINAL</div>
+            <div style="font-family: 'Orbitron', sans-serif; color: #8b949e; font-size: 12px; margin-top: 2px;">SWISS TOURNAMENT TERMINAL</div>
         </div>
         <div class="header-controls">
             <a href="index_blitz.html" target="_blank">[ LAUNCH PUBLIC VIEWER ]</a>
@@ -96,15 +94,15 @@
     <div class="tab-menu">
         <button id="tabBtn0" class="tab-btn active" onclick="switchTab('gamesTab', this)">1. GAMES</button>
         <button id="tabBtn1" class="tab-btn" onclick="switchTab('teamsTab', this)">2. TEAMS</button>
-        <button id="tabBtn2" class="tab-btn" onclick="switchTab('matchesTab', this)">3. MATCHES</button>
+        <button id="tabBtn2" class="tab-btn" onclick="switchTab('matchesTab', this)">3. SWISS MATCHES</button>
     </div>
 
     <div id="activeGameDisplay" class="active-game-label">TARGET GAME: NULL</div>
 
     <!-- TAB 0: Games -->
     <div id="gamesTab" class="tab-content active">
-        <h3>INITIALIZE BLITZ GAME</h3>
-        <input type="text" id="gameName" placeholder="e.g., BLITZ SENIOR 2026">
+        <h3>INITIALIZE BLITZ TOURNAMENT</h3>
+        <input type="text" id="gameName" placeholder="e.g., BLITZ SWISS CHAMPIONSHIP 2026">
         <button class="btn-primary" onclick="createGame()">CREATE</button>
 
         <h3 style="margin-top: 40px;">ACTIVE SYSTEMS</h3>
@@ -116,7 +114,7 @@
 
     <!-- TAB 1: Teams -->
     <div id="teamsTab" class="tab-content">
-        <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: MATCHES GENERATED. ROSTER IS LOCKED.</div>
+        <div id="teamLockMessage" class="lock-msg">SWISS TOURNAMENT IN PROGRESS. ROSTER IS LOCKED.</div>
         <div id="teamSetupControls">
             <h3>REGISTER TEAM UNIT</h3>
             <input type="text" id="teamName" placeholder="Enter Team Designation">
@@ -127,14 +125,18 @@
             <thead><tr><th>TEAM DESIGNATION</th><th>ACTION</th></tr></thead>
             <tbody id="teams-list-body"></tbody>
         </table>
-        <button id="generateMatchesBtn" class="btn-primary" onclick="generateMatches()" style="width: 100%; margin-top: 20px;">[ GENERATE MATCH SCHEDULE ]</button>
+        <button id="generateRound1Btn" class="btn-primary" onclick="generateNextSwissRound()" style="width: 100%; margin-top: 20px;">[ INITIATE ROUND 1 ]</button>
     </div>
 
-    <!-- TAB 2: Matches -->
+    <!-- TAB 2: Swiss Matches -->
     <div id="matchesTab" class="tab-content">
-        <h3>MATCH CONTROLS</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3>CURRENT ROUND: <span id="currentRoundDisplay" class="round-badge">ROUND 1</span></h3>
+            <button id="nextRoundBtn" class="btn-primary" onclick="generateNextSwissRound()">NEXT SWISS ROUND ➔</button>
+        </div>
+
         <table>
-            <thead><tr><th>MATCH</th><th>MATCHUP</th><th>TIMER</th><th>CONTROLS</th><th>WINNER</th></tr></thead>
+            <thead><tr><th>MATCH</th><th>SWISS MATCHUP</th><th>TIMER</th><th>CONTROLS</th><th>WINNER</th></tr></thead>
             <tbody id="matches-list-body"></tbody>
         </table>
     </div>
@@ -158,7 +160,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Paste your exact Super Admin UID here
   const SUPER_ADMIN_UID = "PASTE_YOUR_SUPER_ADMIN_UID_HERE";
 
   let currentGameId = null;
@@ -207,7 +208,7 @@
       return html;
   }
 
-  // --- GAME MANAGEMENT (MULTI-TENANT ISOLATION) ---
+  // --- GAME MANAGEMENT ---
   function initGamesListListener(user) {
       if(unsubGamesList) unsubGamesList();
 
@@ -233,9 +234,10 @@
               allGamesData[docSnap.id] = game;
 
               tbody.innerHTML += `<tr>
-                  <td class="team-name" style="font-family: 'Orbitron', sans-serif;">${game.name}</td>
+                  <td class="team-name" style="font-family: 'Orbitron', sans-serif;">${game.name} ${game.currentRound ? `[ROUND ${game.currentRound}]` : ''}</td>
                   <td>
                       <button class="btn-primary" style="padding: 5px 10px; font-size:12px;" onclick="selectGame('${docSnap.id}')">SELECT</button>
+                      <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
                       <button class="btn-red" onclick="deleteGame('${docSnap.id}', '${game.name}')">DEL</button>
                   </td>
               </tr>`;
@@ -249,7 +251,8 @@
       await addDoc(collection(db, "games"), { 
           name: name, 
           createdAt: new Date(), 
-          createdBy: auth.currentUser.uid, // Owner isolation
+          createdBy: auth.currentUser.uid,
+          currentRound: 0,
           hasMatches: false
       });
       document.getElementById("gameName").value = "";
@@ -260,6 +263,25 @@
           if(currentGameId === id) currentGameId = null;
           await deleteDoc(doc(db, "games", id));
       }
+  };
+
+  window.restartGame = async function(id, name) {
+      if(!confirm(`⚠️ REBOOT "${name}"?\n\nThis will wipe all Swiss rounds and match history. Team roster will be kept.`)) return;
+
+      await updateDoc(doc(db, "games", id), { currentRound: 0, hasMatches: false });
+
+      // Clear teams stats
+      const teamsSnap = await getDocs(collection(db, "games", id, "teams"));
+      teamsSnap.forEach(tDoc => {
+          updateDoc(doc(db, "games", id, "teams", tDoc.id), { wins: 0, totalTimeMs: 0, pastOpponents: [] });
+      });
+
+      // Purge all matches
+      const matchesSnap = await getDocs(collection(db, "games", id, "matches"));
+      matchesSnap.forEach(mDoc => deleteDoc(doc(db, "games", id, "matches", mDoc.id)));
+
+      alert(`SWISS TOURNAMENT REBOOTED: "${name}"`);
+      selectGame(id);
   };
 
   window.selectGame = function(id) {
@@ -275,6 +297,7 @@
       unsubGame = onSnapshot(doc(db, "games", currentGameId), (docSnap) => {
           currentGameData = docSnap.data();
           renderTeamsTab(); 
+          document.getElementById("currentRoundDisplay").innerText = `ROUND ${currentGameData.currentRound || 1}`;
       });
 
       unsubTeams = onSnapshot(collection(db, "games", currentGameId, "teams"), (snapshot) => {
@@ -299,11 +322,11 @@
       
       if (hasMatches) {
           document.getElementById("teamSetupControls").style.display = "none";
-          document.getElementById("generateMatchesBtn").style.display = "none";
+          document.getElementById("generateRound1Btn").style.display = "none";
           document.getElementById("teamLockMessage").style.display = "block";
       } else {
           document.getElementById("teamSetupControls").style.display = "block";
-          document.getElementById("generateMatchesBtn").style.display = "block";
+          document.getElementById("generateRound1Btn").style.display = "block";
           document.getElementById("teamLockMessage").style.display = "none";
       }
 
@@ -329,7 +352,8 @@
           name: name, 
           createdBy: auth.currentUser.uid, 
           wins: 0, 
-          totalTimeMs: 0 
+          totalTimeMs: 0,
+          pastOpponents: []
       });
       document.getElementById("teamName").value = ""; 
   };
@@ -338,20 +362,74 @@
       if(confirm(`DELETE UNIT?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
   };
 
-  window.generateMatches = async function() {
-      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR ROUND ROBIN.");
-      if(!confirm("Generate round-robin match schedule? Team roster will lock.")) return;
+  // --- SWISS PAIRING ALGORITHM ---
+  window.generateNextSwissRound = async function() {
+      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR SWISS PAIRINGS.");
 
+      // Verify previous round is finished
+      const currentRound = currentGameData.currentRound || 0;
+      if(currentRound > 0) {
+          const activeRoundMatches = currentMatchesList.filter(m => m.round === currentRound);
+          const uncompleted = activeRoundMatches.filter(m => !m.winnerId);
+          if (uncompleted.length > 0) {
+              return alert(`CANNOT ADVANCE: ${uncompleted.length} match(es) in Round ${currentRound} are still pending!`);
+          }
+      }
+
+      const nextRound = currentRound + 1;
+      if(!confirm(`Generate pairings for SWISS ROUND ${nextRound}?`)) return;
+
+      // 1. Sort teams by Wins (descending), then by accumulative match time
+      let sortedTeams = [...currentTeamsList].sort((a, b) => {
+          if ((b.wins || 0) !== (a.wins || 0)) return (b.wins || 0) - (a.wins || 0);
+          return (a.totalTimeMs || 0) - (b.totalTimeMs || 0);
+      });
+
+      // 2. Generate Swiss pairings avoiding repeat matchups
+      let paired = new Set();
       let matchNum = 1;
-      for (let i = 0; i < currentTeamsList.length; i++) {
-          for (let j = i + 1; j < currentTeamsList.length; j++) {
-              await addDoc(collection(db, "games", currentGameId, "matches"), {
+      let newMatches = [];
+
+      for (let i = 0; i < sortedTeams.length; i++) {
+          if (paired.has(sortedTeams[i].id)) continue;
+
+          let teamA = sortedTeams[i];
+          let teamB = null;
+
+          // Find opponent with closest win record who hasn't played teamA before
+          for (let j = i + 1; j < sortedTeams.length; j++) {
+              let candidate = sortedTeams[j];
+              if (paired.has(candidate.id)) continue;
+
+              let pastOpponentsA = teamA.pastOpponents || [];
+              if (!pastOpponentsA.includes(candidate.id)) {
+                  teamB = candidate;
+                  break;
+              }
+          }
+
+          // Fallback if no non-repeat opponent exists
+          if (!teamB) {
+              for (let j = i + 1; j < sortedTeams.length; j++) {
+                  if (!paired.has(sortedTeams[j].id)) {
+                      teamB = sortedTeams[j];
+                      break;
+                  }
+              }
+          }
+
+          if (teamB) {
+              paired.add(teamA.id);
+              paired.add(teamB.id);
+
+              newMatches.push({
+                  round: nextRound,
                   matchNumber: matchNum++,
                   createdBy: auth.currentUser.uid,
-                  teamAId: currentTeamsList[i].id,
-                  teamAName: currentTeamsList[i].name,
-                  teamBId: currentTeamsList[j].id,
-                  teamBName: currentTeamsList[j].name,
+                  teamAId: teamA.id,
+                  teamAName: teamA.name,
+                  teamBId: teamB.id,
+                  teamBName: teamB.name,
                   startTimestamp: null,
                   durationMs: null,
                   winnerId: null
@@ -359,7 +437,16 @@
           }
       }
 
-      await updateDoc(doc(db, "games", currentGameId), { hasMatches: true });
+      // Write matches to Firestore
+      for(let m of newMatches) {
+          await addDoc(collection(db, "games", currentGameId, "matches"), m);
+      }
+
+      await updateDoc(doc(db, "games", currentGameId), { 
+          currentRound: nextRound, 
+          hasMatches: true 
+      });
+
       switchTab('matchesTab', document.getElementById('tabBtn2'));
   };
 
@@ -368,9 +455,19 @@
       const tbody = document.getElementById("matches-list-body");
       tbody.innerHTML = "";
 
-      currentMatchesList.sort((a,b) => a.matchNumber - b.matchNumber);
+      const currentRound = currentGameData ? (currentGameData.currentRound || 1) : 1;
+      document.getElementById("currentRoundDisplay").innerText = `ROUND ${currentRound}`;
 
-      currentMatchesList.forEach(match => {
+      // Filter matches by current round
+      const activeMatches = currentMatchesList.filter(m => m.round === currentRound);
+      activeMatches.sort((a,b) => a.matchNumber - b.matchNumber);
+
+      if(activeMatches.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="color:#6e7681;">CLICK "NEXT SWISS ROUND" TO GENERATE MATCHUPS</td></tr>`;
+          return;
+      }
+
+      activeMatches.forEach(match => {
           let timerColor = "white";
           let timeDisplay = formatTime(0);
           let controls = "";
@@ -384,8 +481,8 @@
           } else if (match.startTimestamp) {
               timerColor = "var(--neon-green)";
               controls = `
-                  <button class="btn-green" onclick="stopMatch('${match.id}', '${match.teamAId}')">${match.teamAName} WIN</button>
-                  <button class="btn-blue" onclick="stopMatch('${match.id}', '${match.teamBId}')">${match.teamBName} WIN</button>
+                  <button class="btn-green" onclick="stopMatch('${match.id}', '${match.teamAId}', '${match.teamBId}')">${match.teamAName} WIN</button>
+                  <button class="btn-blue" onclick="stopMatch('${match.id}', '${match.teamBId}', '${match.teamAId}')">${match.teamBName} WIN</button>
               `;
               if(!matchTimerIntervals[match.id]) {
                   matchTimerIntervals[match.id] = setInterval(() => {
@@ -398,7 +495,7 @@
           }
 
           tbody.innerHTML += `<tr>
-              <td>M${match.matchNumber}</td>
+              <td>R${match.round} M${match.matchNumber}</td>
               <td class="team-name" style="text-align:center;">${match.teamAName} vs ${match.teamBName}</td>
               <td class="timer-display" id="matchTime_${match.id}" style="color:${timerColor}">${timeDisplay}</td>
               <td>${controls}</td>
@@ -411,20 +508,73 @@
       await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { startTimestamp: Date.now() });
   };
 
-  window.stopMatch = async function(matchId, winnerId) {
+  window.stopMatch = async function(matchId, winnerId, loserId) {
       const match = currentMatchesList.find(m => m.id === matchId);
       if(!match || !match.startTimestamp) return;
 
       const elapsed = Date.now() - match.startTimestamp;
+      
+      // Save match result
       await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { 
           durationMs: elapsed, 
           winnerId: winnerId,
           startTimestamp: null 
       });
+
+      // Update Winner Team Stats
+      const winnerDoc = currentTeamsList.find(t => t.id === winnerId);
+      if(winnerDoc) {
+          let winnerOpponents = winnerDoc.pastOpponents || [];
+          if(!winnerOpponents.includes(loserId)) winnerOpponents.push(loserId);
+
+          await updateDoc(doc(db, "games", currentGameId, "teams", winnerId), {
+              wins: (winnerDoc.wins || 0) + 1,
+              totalTimeMs: (winnerDoc.totalTimeMs || 0) + elapsed,
+              pastOpponents: winnerOpponents
+          });
+      }
+
+      // Update Loser Team Stats
+      const loserDoc = currentTeamsList.find(t => t.id === loserId);
+      if(loserDoc) {
+          let loserOpponents = loserDoc.pastOpponents || [];
+          if(!loserOpponents.includes(winnerId)) loserOpponents.push(winnerId);
+
+          await updateDoc(doc(db, "games", currentGameId, "teams", loserId), {
+              totalTimeMs: (loserDoc.totalTimeMs || 0) + elapsed,
+              pastOpponents: loserOpponents
+          });
+      }
   };
 
   window.resetMatch = async function(matchId) {
       if(!confirm("Reset match results?")) return;
+
+      const match = currentMatchesList.find(m => m.id === matchId);
+      if(!match || !match.winnerId) return;
+
+      const winnerId = match.winnerId;
+      const loserId = match.winnerId === match.teamAId ? match.teamBId : match.teamAId;
+      const elapsed = match.durationMs || 0;
+
+      // Revert Winner
+      const winnerDoc = currentTeamsList.find(t => t.id === winnerId);
+      if(winnerDoc) {
+          await updateDoc(doc(db, "games", currentGameId, "teams", winnerId), {
+              wins: Math.max(0, (winnerDoc.wins || 0) - 1),
+              totalTimeMs: Math.max(0, (winnerDoc.totalTimeMs || 0) - elapsed)
+          });
+      }
+
+      // Revert Loser
+      const loserDoc = currentTeamsList.find(t => t.id === loserId);
+      if(loserDoc) {
+          await updateDoc(doc(db, "games", currentGameId, "teams", loserId), {
+              totalTimeMs: Math.max(0, (loserDoc.totalTimeMs || 0) - elapsed)
+          });
+      }
+
+      // Reset Match document
       await updateDoc(doc(db, "games", currentGameId, "matches", matchId), { 
           durationMs: null, 
           winnerId: null,

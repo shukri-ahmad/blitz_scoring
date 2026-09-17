@@ -40,6 +40,11 @@
         .team-name { font-weight: bold; text-align: left; padding-left: 20px; font-size: 1.2em; color: white;}
         .win-box { font-size: 1.2em; font-weight: bold; color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.4); }
         .formula-text { text-align: center; font-size: 14px; color: #8b949e; margin-top: -10px; margin-bottom: 20px; font-weight: bold;}
+        
+        /* Styles for the Match History section */
+        .history-section-title { margin-top: 50px; margin-bottom: 10px; text-align: left; color: var(--neon-green); border-bottom: 1px solid #30363d; padding-bottom: 10px; font-size: 20px;}
+        .public-round-header { background: var(--blue-gear); padding: 10px; margin-top: 20px; border-radius: 4px; border-left: 4px solid var(--purple-accent); color: white; font-family: 'Orbitron', sans-serif; font-weight: bold; text-align: left;}
+        .match-divider td { background-color: #30363d; height: 1px; padding: 0; border: none; opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -58,7 +63,6 @@
         <select id="publicGameSelect" onchange="loadSelectedGame()"><option>INITIALIZING...</option></select>
     </div>
 
-    <!-- Updated Ranking Logic Text -->
     <p class="formula-text">RANKED BY: HIGHEST POINTS (WINS/DRAWS) ➔ LEAST BALLS LEFT ➔ TIE-BREAKER MATCH</p>
     
     <table>
@@ -72,11 +76,17 @@
         </thead>
         <tbody id="leaderboard-body"><tr><td colspan="4">AWAITING DATA...</td></tr></tbody>
     </table>
+
+    <!-- Match History Section -->
+    <h3 class="history-section-title">TOURNAMENT MATCH HISTORY</h3>
+    <div id="matches-history-container">
+        <p style="text-align: center; color: #8b949e;">Awaiting match data...</p>
+    </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
@@ -91,6 +101,7 @@
   const db = getFirestore(app);
 
   let unsubTeams = null;
+  let unsubMatches = null;
 
   async function loadGamesList() {
       const selectElement = document.getElementById("publicGameSelect");
@@ -110,7 +121,9 @@
       if(!gameId || gameId === "NO GAMES FOUND") return;
 
       if(unsubTeams) unsubTeams();
+      if(unsubMatches) unsubMatches();
 
+      // Load and update the Leaderboard
       unsubTeams = onSnapshot(collection(db, "games", gameId, "teams"), (snapshot) => {
         let teams = [];
 
@@ -118,10 +131,9 @@
             teams.push({ id: documentDoc.id, ...documentDoc.data() });
         });
 
-        // Simple Sorting: Points (Descending) -> Balls Left (Ascending/Least is best)
         teams.sort((a, b) => {
             if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
-            return (a.balls || 0) - (b.balls || 0); // Less balls = higher rank
+            return (a.balls || 0) - (b.balls || 0); 
         });
         
         const tbody = document.getElementById("leaderboard-body");
@@ -137,6 +149,73 @@
               <td style="font-family: 'Orbitron', sans-serif; font-weight: bold;">${team.balls || 0}</td>
             </tr>`;
         });
+      });
+
+      // Load and update the Match History
+      const qMatches = query(collection(db, "games", gameId, "matches"), orderBy("round", "asc"));
+      unsubMatches = onSnapshot(qMatches, (snapshot) => {
+          const container = document.getElementById("matches-history-container");
+          container.innerHTML = "";
+          
+          if (snapshot.size === 0) {
+              container.innerHTML = `<p style="text-align: center; color: #8b949e;">No matches generated yet.</p>`;
+              return;
+          }
+
+          let roundsData = {};
+          let maxRound = 0;
+
+          snapshot.forEach(docSnap => {
+              const match = docSnap.data();
+              if(match.round > maxRound) maxRound = match.round;
+              if(!roundsData[match.round]) roundsData[match.round] = [];
+              roundsData[match.round].push(match);
+          });
+
+          for (let r = 1; r <= maxRound; r++) {
+              if (!roundsData[r]) continue;
+              
+              let html = `<div class="public-round-header">ROUND ${r}</div>`;
+              html += `<table><thead><tr><th>MATCH</th><th>TEAM UNIT</th><th>BALLS</th><th>RESULT</th></tr></thead><tbody>`;
+              
+              roundsData[r].forEach((match, index) => {
+                  const aBalls = match.teamA_balls === null ? "-" : match.teamA_balls;
+                  const bBalls = match.teamB_balls === null ? "-" : match.teamB_balls;
+                  
+                  let aStatus = "-", bStatus = "-";
+                  let aColor = "white", bColor = "white";
+
+                  if (match.teamA_balls !== null && match.teamB_balls !== null) {
+                      if (match.teamA_balls < match.teamB_balls) {
+                          aStatus = "WIN"; bStatus = "LOSS";
+                          aColor = "var(--neon-green)"; bColor = "var(--red-gear)";
+                      } else if (match.teamB_balls < match.teamA_balls) {
+                          aStatus = "LOSS"; bStatus = "WIN";
+                          aColor = "var(--red-gear)"; bColor = "var(--neon-green)";
+                      } else {
+                          aStatus = "DRAW"; bStatus = "DRAW";
+                          aColor = "#f39c12"; bColor = "#f39c12";
+                      }
+                  }
+
+                  html += `
+                      <tr>
+                          <td rowspan="2" style="font-family: 'Orbitron', sans-serif; font-weight: bold; width: 10%;">#${index+1}</td>
+                          <td class="team-name" style="color: ${aColor};">${match.teamA_name}</td>
+                          <td style="font-weight: bold; font-size: 1.2em; width: 15%;">${aBalls}</td>
+                          <td style="color: ${aColor}; font-weight: bold; font-family: 'Orbitron', sans-serif; width: 15%;">${aStatus}</td>
+                      </tr>
+                      <tr>
+                          <td class="team-name" style="color: ${bColor};">${match.teamB_name}</td>
+                          <td style="font-weight: bold; font-size: 1.2em;">${bBalls}</td>
+                          <td style="color: ${bColor}; font-weight: bold; font-family: 'Orbitron', sans-serif;">${bStatus}</td>
+                      </tr>
+                      <tr class="match-divider"><td colspan="4"></td></tr>
+                  `;
+              });
+              html += `</tbody></table>`;
+              container.innerHTML += html;
+          }
       });
   };
 </script>

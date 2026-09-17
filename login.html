@@ -3,52 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Makerobot Blitz</title>
-    <!-- Futuristic Fonts -->
+    <title>Admin Login - Makerobot</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --red-gear: #e72429;
-            --blue-gear: #1f4179;
-            --blitz-grad: linear-gradient(90deg, #1f4179 0%, #9e58cc 100%);
             --bg-dark: #090c10;
             --panel-bg: #111822;
             --border-glow: #1f4179;
+            --purple-accent: #9d4edd;
+            --text-main: #c9d1d9;
         }
-
-        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-image: radial-gradient(circle at 50% 50%, rgba(31, 65, 121, 0.2) 0%, transparent 60%); }
-        
-        .logo-container { margin-bottom: 20px; }
-        .logo-container img { max-width: 220px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
-        
-        .login-box { background: var(--panel-bg); padding: 40px 30px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,0,0,0.8); text-align: center; width: 100%; max-width: 320px; border: 1px solid var(--border-glow); position: relative; overflow: hidden;}
-        
-        /* Sci-Fi accent line at top of box */
-        .login-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--blitz-grad); }
-
-        h2 { font-family: 'Orbitron', sans-serif; color: white; margin-top: 0; margin-bottom: 25px; letter-spacing: 2px;}
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #30363d; border-radius: 4px; box-sizing: border-box; background: #0d1117; color: white; font-family: 'Rajdhani', sans-serif; font-size: 16px;}
-        input:focus { outline: none; border-color: #9e58cc; box-shadow: 0 0 8px rgba(158, 88, 204, 0.4); }
-        
-        button { width: 100%; padding: 12px; margin-top: 15px; background: var(--blitz-grad); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; transition: 0.3s;}
-        button:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(158, 88, 204, 0.5);}
-        
-        a { display: inline-block; margin-top: 20px; font-size: 14px; color: #8b949e; text-decoration: none; font-family: 'Orbitron', sans-serif; transition: 0.3s;}
-        a:hover { color: white; }
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 50%);
+        }
+        .login-box { 
+            background: var(--panel-bg); 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); 
+            border: 1px solid var(--border-glow);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+        h2 { font-family: 'Orbitron', sans-serif; color: white; margin-bottom: 25px; letter-spacing: 2px;}
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            border: 1px solid #30363d; 
+            border-radius: 4px; 
+            background: #0d1117; 
+            color: white; 
+            font-family: 'Rajdhani', sans-serif; 
+            font-size: 16px;
+        }
+        input:focus { outline: none; border-color: var(--purple-accent); }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: linear-gradient(90deg, #1f4179 0%, #9e58cc 100%);
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        button:hover { filter: brightness(1.2); }
+        .error { color: #ff7b72; margin-top: 15px; font-weight: bold; font-size: 14px; display: none; }
+        .system-select { margin-top: 25px; text-align: left; }
+        .system-select select {
+            width: 100%; padding: 10px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
-<div class="logo-container">
-    <img src="[FINAL] LOGO MAKEROBOT2026 (9)-Photoroom.png" alt="Makerobot Blitz Logo">
-</div>
-
 <div class="login-box">
-    <h2>SYSTEM ACCESS</h2>
-    <input type="email" id="email" placeholder="ADMIN ID (EMAIL)">
-    <input type="password" id="password" placeholder="PASSCODE">
-    <button onclick="login()">AUTHENTICATE</button>
-    <a href="index.html">&larr; RETURN TO PUBLIC VIEW</a>
+    <h2>SYSTEM LOGIN</h2>
+    <input type="email" id="email" placeholder="Admin Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    
+    <div class="system-select">
+        <label style="font-family: 'Orbitron'; font-size: 12px; color: #8b949e;">TARGET SYSTEM:</label>
+        <select id="redirectTarget">
+            <option value="admin_blitz.html">MAKEROBOT BLITZ</option>
+            <option value="admin.html">MAKEROBOT TRACER (STANDARD)</option>
+            <option value="admin_semi_auto.html">MAKEROBOT TRACER (SEMI AUTO)</option>
+        </select>
+    </div>
+
+    <button onclick="login()" style="margin-top: 25px;">AUTHORIZE</button>
+    <div id="errorMsg" class="error">ACCESS DENIED: Invalid Credentials</div>
 </div>
 
 <script type="module">
@@ -68,20 +105,30 @@
   const auth = getAuth(app);
 
   window.login = function() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      const targetPage = document.getElementById("redirectTarget").value;
+      const errorMsg = document.getElementById("errorMsg");
 
-    if(!email || !password) return alert("CREDENTIALS REQUIRED.");
-
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        window.location.href = "admin.html";
-      })
-      .catch((error) => {
-        alert("AUTHENTICATION FAILED: " + error.message);
-      });
+      signInWithEmailAndPassword(auth, email, pass)
+          .then((userCredential) => {
+              // Login successful, redirect to chosen admin panel
+              window.location.href = targetPage;
+          })
+          .catch((error) => {
+              errorMsg.style.display = "block";
+              errorMsg.innerText = "ACCESS DENIED: " + error.message;
+              console.error("Login Error:", error.code, error.message);
+          });
   };
-</script>
 
+  // Allow pressing "Enter" to login
+  document.getElementById("password").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+          event.preventDefault();
+          window.login();
+      }
+  });
+</script>
 </body>
 </html>

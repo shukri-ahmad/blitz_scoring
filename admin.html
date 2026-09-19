@@ -130,6 +130,7 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // SUPER ADMIN UID
   const SUPER_ADMIN_UID = "VtQPCbf90jeTxGwSUqitJpgNg202"; 
 
   const firebaseConfig = {
@@ -389,12 +390,10 @@
           matchesMsg.style.display = "none";
           lockMsg.style.display = "block";
           
-          // INSTANTLY LOCK ALL INPUTS VISUALLY
           document.querySelectorAll("#matches-container input").forEach(input => { 
               input.disabled = true; 
           });
           
-          // INSTANTLY ADD BADGES TO LAST ROUND HEADER
           document.querySelectorAll(".round-header").forEach(header => {
               if (!header.innerHTML.includes("[DATA LOCKED]")) {
                   header.innerHTML += ` <span class="round-locked-badge">[DATA LOCKED]</span>`;
@@ -415,7 +414,40 @@
       }
   }
 
-  // --- NEW FEATURE: LOCK TEAMS & AUTO-GENERATE ROUND 1 ---
+  // --- REWRITTEN ADD TEAM FUNCTION WITH ERROR HANDLING ---
+  window.addTeam = async function() {
+      try {
+          const name = document.getElementById("teamName").value.trim();
+          
+          if(!currentGameId) {
+              return alert("ERROR: No game selected. Please go to the GAMES tab and click SELECT first.");
+          }
+          if(!name) {
+              return alert("ERROR: Please type a team name first.");
+          }
+
+          await addDoc(collection(db, "games", currentGameId, "teams"), { 
+              name: name, 
+              points: 0, 
+              balls: 0 
+          });
+          
+          document.getElementById("teamName").value = ""; 
+
+      } catch (error) {
+          console.error("Firebase Error: ", error);
+          alert("SYSTEM ERROR: " + error.message);
+      }
+  };
+
+  // Allows pressing "Enter" key to register team
+  document.getElementById("teamName").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+          event.preventDefault();
+          window.addTeam();
+      }
+  });
+
   window.lockTeamsAndProceed = async function() {
       if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR SIMULATION.");
       
@@ -423,7 +455,6 @@
       
       switchTab('roundsTab', document.getElementById('tabBtn2'));
       
-      // If we are at the very beginning (no matches generated yet), trigger round 1!
       if (currentMaxRound === 0) {
           await performRoundGeneration(1);
       }
@@ -596,6 +627,32 @@
       if(!confirm("SYSTEM PROMPT: TERMINATE GAME?\nThis action finalizes the data and locks all inputs.")) return;
       await updateDoc(doc(db, "games", currentGameId), { isLocked: true });
       alert("GAME TERMINATED. DATA LOCKED.");
+  };
+
+  function renderTeamsList() {
+      document.getElementById("teamCount").innerText = currentTeamsList.length;
+      const tbody = document.getElementById("teams-list-body");
+      tbody.innerHTML = "";
+      currentTeamsList.forEach(team => {
+          const actionHtml = isTournamentStarted 
+              ? `<span style="color: #6e7681; font-style: italic;">LOCKED</span>` 
+              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">DEL</button>`;
+          tbody.innerHTML += `<tr><td style="text-align: left; padding-left: 15px; font-weight: bold; color:white;">${team.name}</td><td>${actionHtml}</td></tr>`;
+      });
+  }
+
+  window.deleteTeam = async function(id, name) {
+      if(confirm(`DELETE TEAM: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
+  };
+
+  window.updateScore = async function(matchId, teamSide, value) {
+      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
+      const updateData = {};
+      const numValue = value === "" ? null : parseInt(value);
+      if (teamSide === 'A') updateData.teamA_balls = numValue;
+      if (teamSide === 'B') updateData.teamB_balls = numValue;
+      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), updateData);
+      recalculateStandings();
   };
 
   async function recalculateStandings() {

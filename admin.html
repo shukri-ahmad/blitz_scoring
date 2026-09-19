@@ -121,7 +121,6 @@
         
         <button id="generateRoundBtn" class="btn-primary" onclick="generateNextRound()" style="width: 100%; margin-top: 20px;">GENERATE ROUND 1 (SWISS PROTOCOL)</button>
         <button id="finishGameBtn" class="btn-red" onclick="finishGame()" style="width: 100%; margin-top: 15px; font-size: 16px; display: none;">TERMINATE GAME (LOCK ALL SCORES)</button>
-        <!-- NEW PRINT BUTTON FOR SUPER ADMIN -->
         <button id="printResultsBtn" class="btn-primary" onclick="printResults()" style="width: 100%; margin-top: 15px; font-size: 16px; background: var(--neon-green); color: black; display: none;">[ SUPER ADMIN ] PRINT RESULTS TO PDF</button>
     </div>
 </div>
@@ -131,9 +130,9 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // 👇 UPDATE THIS WITH YOUR FIREBASE UID TO GRANT SUPER ADMIN ACCESS 👇
+  // 👇 UID INJECTED HERE 👇
   const SUPER_ADMIN_UID = "VtQPCbf90jeTxGwSUqitJpgNg202"; 
-  // 👆 -------------------------------------------------------------- 👆
+  // 👆 ------------------ 👆
 
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
@@ -152,10 +151,10 @@
   let currentMaxRound = 0;
   let isTournamentStarted = false;
   let currentTeamsList = [];
-  let currentMatchesList = []; // Added for printing
+  let currentMatchesList = []; 
   let allGamesData = {}; 
   let currentGameIsLocked = false;
-  let isSuperAdminUser = false; // Added to track role
+  let isSuperAdminUser = false; 
   
   let unsubGames = null;
   let unsubTeams = null;
@@ -208,7 +207,7 @@
               
               tbody.innerHTML += `
                   <tr>
-                      <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name} ${lockedBadge}</td>
+                      <td style="font-weight: bold; text-align: left; padding-left: 15px; color: white; font-family: 'Orbitron', sans-serif;">${game.name}${lockedBadge}</td>
                       <td>
                           <button class="btn-manage" onclick="selectGame('${docSnap.id}')">SELECT</button>
                           <button class="btn-restart" onclick="restartGame('${docSnap.id}', '${game.name}')">REBOOT</button>
@@ -391,6 +390,19 @@
           finishBtn.style.display = "none";
           matchesMsg.style.display = "none";
           lockMsg.style.display = "block";
+          
+          // 🔒 INSTANTLY LOCK ALL INPUTS VISUALLY
+          document.querySelectorAll("#matches-container input").forEach(input => { 
+              input.disabled = true; 
+          });
+          
+          // 🔒 INSTANTLY ADD BADGES TO LAST ROUND HEADER
+          document.querySelectorAll(".round-header").forEach(header => {
+              if (!header.innerHTML.includes("[DATA LOCKED]")) {
+                  header.innerHTML += ` <span class="round-locked-badge">[DATA LOCKED]</span>`;
+              }
+          });
+
       } else {
           generateBtn.style.display = "block";
           matchesMsg.style.display = "block";
@@ -398,7 +410,6 @@
           finishBtn.style.display = isTournamentStarted ? "block" : "none";
       }
 
-      // Show print button if a game is selected AND user is super admin
       if (isSuperAdminUser && currentGameId) {
           printBtn.style.display = "block";
       } else {
@@ -412,7 +423,6 @@
       
       const game = allGamesData[currentGameId];
       
-      // Sort teams and calculate TIES
       let teams = [...currentTeamsList].sort((a, b) => {
           if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
           return (a.balls || 0) - (b.balls || 0); 
@@ -430,7 +440,6 @@
           t.isTied = tiedWithPrev || tiedWithNext;
       });
 
-      // Open new window for clean printing
       let printWindow = window.open('', '_blank');
       let html = `
       <html>

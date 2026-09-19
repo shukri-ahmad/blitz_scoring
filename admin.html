@@ -130,9 +130,7 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // 👇 UID INJECTED HERE 👇
   const SUPER_ADMIN_UID = "VtQPCbf90jeTxGwSUqitJpgNg202"; 
-  // 👆 ------------------ 👆
 
   const firebaseConfig = {
     apiKey: "AIzaSyCbDoYDHtApreoGBJTSXby8aHPft3WRFDE",
@@ -391,12 +389,12 @@
           matchesMsg.style.display = "none";
           lockMsg.style.display = "block";
           
-          // 🔒 INSTANTLY LOCK ALL INPUTS VISUALLY
+          // INSTANTLY LOCK ALL INPUTS VISUALLY
           document.querySelectorAll("#matches-container input").forEach(input => { 
               input.disabled = true; 
           });
           
-          // 🔒 INSTANTLY ADD BADGES TO LAST ROUND HEADER
+          // INSTANTLY ADD BADGES TO LAST ROUND HEADER
           document.querySelectorAll(".round-header").forEach(header => {
               if (!header.innerHTML.includes("[DATA LOCKED]")) {
                   header.innerHTML += ` <span class="round-locked-badge">[DATA LOCKED]</span>`;
@@ -417,7 +415,80 @@
       }
   }
 
-  // --- NEW PDF PRINT ENGINE ---
+  // --- NEW FEATURE: LOCK TEAMS & AUTO-GENERATE ROUND 1 ---
+  window.lockTeamsAndProceed = async function() {
+      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR SIMULATION.");
+      
+      if(!confirm("SYSTEM PROMPT: LOCK ROSTER AND INITIATE TOURNAMENT?\n\nThis will officially lock the team list and automatically generate the Round 1 matches.")) return;
+      
+      switchTab('roundsTab', document.getElementById('tabBtn2'));
+      
+      // If we are at the very beginning (no matches generated yet), trigger round 1!
+      if (currentMaxRound === 0) {
+          await performRoundGeneration(1);
+      }
+  };
+
+  window.generateNextRound = async function() {
+      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
+      
+      const targetRound = currentMaxRound + 1;
+      let confirmMsg = `EXECUTE ROUND ${targetRound}?`;
+      if (currentMaxRound > 0) {
+          confirmMsg += ` \nWARNING: Doing this will permanently lock all scores from Round ${currentMaxRound}.`;
+      }
+      
+      if(!confirm(confirmMsg)) return;
+
+      await performRoundGeneration(targetRound);
+  };
+
+  async function performRoundGeneration(targetRound) {
+      const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
+      let playedHistory = {}; 
+      
+      matchesSnap.forEach(docSnap => {
+          const m = docSnap.data();
+          if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
+          if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
+          playedHistory[m.teamA_id].add(m.teamB_id);
+          playedHistory[m.teamB_id].add(m.teamA_id);
+      });
+
+      let teams = [...currentTeamsList];
+      if(targetRound === 1) { teams = teams.sort(() => Math.random() - 0.5); } 
+      else { teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); }
+
+      let pairings = [];
+      let unpaired = [...teams];
+
+      while(unpaired.length > 1) {
+          let teamA = unpaired.shift(); 
+          let matchedIndex = -1;
+          for(let i = 0; i < unpaired.length; i++) {
+              let potentialOpponent = unpaired[i];
+              let historyA = playedHistory[teamA.id] || new Set();
+              if(!historyA.has(potentialOpponent.id)) { matchedIndex = i; break; }
+          }
+          if(matchedIndex === -1) {
+              matchedIndex = 0;
+              console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
+          }
+          let teamB = unpaired.splice(matchedIndex, 1)[0]; 
+          pairings.push({ teamA, teamB });
+      }
+
+      let byeTeam = unpaired.length === 1 ? unpaired[0] : null;
+
+      for(let pair of pairings) {
+          await addDoc(collection(db, "games", currentGameId, "matches"), {
+              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
+              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
+          });
+      }
+      if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);
+  }
+
   window.printResults = function() {
       if (!currentGameId) return alert("Select a game first.");
       
@@ -525,100 +596,6 @@
       if(!confirm("SYSTEM PROMPT: TERMINATE GAME?\nThis action finalizes the data and locks all inputs.")) return;
       await updateDoc(doc(db, "games", currentGameId), { isLocked: true });
       alert("GAME TERMINATED. DATA LOCKED.");
-  };
-
-  window.lockTeamsAndProceed = function() {
-      if(currentTeamsList.length < 2) return alert("MINIMUM 2 TEAMS REQUIRED FOR SIMULATION.");
-      switchTab('roundsTab', document.getElementById('tabBtn2'));
-  };
-
-  function renderTeamsList() {
-      document.getElementById("teamCount").innerText = currentTeamsList.length;
-      const tbody = document.getElementById("teams-list-body");
-      tbody.innerHTML = "";
-      currentTeamsList.forEach(team => {
-          const actionHtml = isTournamentStarted 
-              ? `<span style="color: #6e7681; font-style: italic;">LOCKED</span>` 
-              : `<button class="btn-red" onclick="deleteTeam('${team.id}', '${team.name}')">DEL</button>`;
-          tbody.innerHTML += `<tr><td style="text-align: left; padding-left: 15px; font-weight: bold; color:white;">${team.name}</td><td>${actionHtml}</td></tr>`;
-      });
-  }
-
-  window.addTeam = async function() {
-      const name = document.getElementById("teamName").value.trim();
-      if(!name || !currentGameId) return;
-      await addDoc(collection(db, "games", currentGameId, "teams"), { name: name, points: 0, balls: 0 });
-      document.getElementById("teamName").value = ""; 
-  };
-
-  window.deleteTeam = async function(id, name) {
-      if(confirm(`DELETE TEAM: ${name}?`)) await deleteDoc(doc(db, "games", currentGameId, "teams", id));
-  };
-
-  window.updateScore = async function(matchId, teamSide, value) {
-      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
-      const updateData = {};
-      const numValue = value === "" ? null : parseInt(value);
-      if (teamSide === 'A') updateData.teamA_balls = numValue;
-      if (teamSide === 'B') updateData.teamB_balls = numValue;
-      await updateDoc(doc(db, "games", currentGameId, "matches", matchId), updateData);
-      recalculateStandings();
-  };
-
-  window.generateNextRound = async function() {
-      if(currentGameIsLocked) return alert("SYSTEM LOCKED.");
-      
-      const targetRound = currentMaxRound + 1;
-      let confirmMsg = `EXECUTE ROUND ${targetRound}?`;
-      if (currentMaxRound > 0) {
-          confirmMsg += ` \nWARNING: Doing this will permanently lock all scores from Round ${currentMaxRound}.`;
-      }
-      
-      if(!confirm(confirmMsg)) return;
-
-      const matchesSnap = await getDocs(collection(db, "games", currentGameId, "matches"));
-      let playedHistory = {}; 
-      
-      matchesSnap.forEach(docSnap => {
-          const m = docSnap.data();
-          if(!playedHistory[m.teamA_id]) playedHistory[m.teamA_id] = new Set();
-          if(!playedHistory[m.teamB_id]) playedHistory[m.teamB_id] = new Set();
-          playedHistory[m.teamA_id].add(m.teamB_id);
-          playedHistory[m.teamB_id].add(m.teamA_id);
-      });
-
-      let teams = [...currentTeamsList];
-      if(targetRound === 1) { teams = teams.sort(() => Math.random() - 0.5); } 
-      else { teams = teams.sort((a, b) => b.points !== a.points ? b.points - a.points : a.balls - b.balls); }
-
-      let pairings = [];
-      let unpaired = [...teams];
-
-      while(unpaired.length > 1) {
-          let teamA = unpaired.shift(); 
-          let matchedIndex = -1;
-          for(let i = 0; i < unpaired.length; i++) {
-              let potentialOpponent = unpaired[i];
-              let historyA = playedHistory[teamA.id] || new Set();
-              if(!historyA.has(potentialOpponent.id)) { matchedIndex = i; break; }
-          }
-          if(matchedIndex === -1) {
-              matchedIndex = 0;
-              console.warn(`Forced rematch for ${teamA.name} due to lack of unplayed opponents.`);
-          }
-          let teamB = unpaired.splice(matchedIndex, 1)[0]; 
-          pairings.push({ teamA, teamB });
-      }
-
-      let byeTeam = unpaired.length === 1 ? unpaired[0] : null;
-
-      for(let pair of pairings) {
-          await addDoc(collection(db, "games", currentGameId, "matches"), {
-              round: targetRound, teamA_id: pair.teamA.id, teamA_name: pair.teamA.name,
-              teamB_id: pair.teamB.id, teamB_name: pair.teamB.name, teamA_balls: null, teamB_balls: null
-          });
-      }
-      if(byeTeam) alert(`${byeTeam.name} SECURED A BYE IN ROUND ${targetRound}.`);
   };
 
   async function recalculateStandings() {
